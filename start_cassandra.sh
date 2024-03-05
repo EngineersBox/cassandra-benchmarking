@@ -13,8 +13,8 @@ PWD=$(pwd)
 function unpack_tar() {
     curl -OL "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
     curl -OL "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256"
-    echo "$(cat "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256") apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz" > "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
-    sha256sum --check --status "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
+    echo "$(cat "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256") apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz" > "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256"
+    sha256sum --check --status "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256"
     tar xzf "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
 }
 
