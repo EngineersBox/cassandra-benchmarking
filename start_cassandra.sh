@@ -9,12 +9,12 @@ CASSANDRA_VERSION="${CASSANDRA_VERSION:-"5.0-beta1"}"
 PWD=$(pwd)
 
 function unpack_tar() {
-    curl -OL "https://www.apache.org/dyn/closer.lua/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
+    curl -OL "http://apache.mirror.digitalpacific.com.au/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
 
     tar_gpg=$(gpg --print-md SHA256 "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz")
     remote_gpg=$(curl -L "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256")
 
-    if [ tar_gpg -neq remote_gpg ]; then
+    if [[ "$tar_gpg" != "$remote_gpg" ]]; then
         echo "[ERROR] GPG key mismatch $tar_gpg != $remote_gpg"
         exit 1
     fi
