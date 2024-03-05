@@ -38,6 +38,8 @@ RUN apt-get update \
 RUN update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:bin/javac::")' >> ~/.bashrc
 
-RUN mkdir /etc/cassandra /var/lib/cassandra
-
 RUN useradd cassandra
+
+USER cassandra
+
+RUN mkdir /etc/cassandra /var/lib/cassandra
