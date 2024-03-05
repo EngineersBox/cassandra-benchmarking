@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 DISTRIBUTION="${DISTRIBUTION:-tar}"
 IMAGE="${IMAGE:-cassandra}"
 GITHUB_USERNAME="${GITHUB_USERNAME:-"EngineersBox"}"
@@ -9,16 +11,10 @@ CASSANDRA_VERSION="${CASSANDRA_VERSION:-"5.0-beta1"}"
 PWD=$(pwd)
 
 function unpack_tar() {
-    curl -OL "http://apache.mirror.digitalpacific.com.au/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
-
-    tar_gpg=$(gpg --print-md SHA256 "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz")
-    remote_gpg=$(curl -L "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256")
-
-    if [[ "$tar_gpg" != "$remote_gpg" ]]; then
-        echo "[ERROR] GPG key mismatch $tar_gpg != $remote_gpg"
-        exit 1
-    fi
-
+    curl -OL "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
+    curl -OL "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256"
+    echo "$(cat "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256") apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz" > "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256"
+    sha256sum --check --status "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
     tar xzf "apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
 }
 
