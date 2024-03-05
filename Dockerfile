@@ -35,7 +35,7 @@ RUN apt-get update \
         libxml2-utils \
     && apt-get clean
 
-RUN sudo update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
+RUN update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:bin/javac::")' >> ~/.bashrc
 
 RUN mkdir /etc/cassandra /var/lib/cassandra
