@@ -1,5 +1,8 @@
 FROM ubuntu:jammy
 
+ARG USER
+ARG GROUP
+
 RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata
 
 RUN apt-get update \
@@ -38,8 +41,10 @@ RUN apt-get update \
 RUN update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:bin/javac::")' >> ~/.bashrc
 
-RUN useradd cassandra
+RUN useradd $USER
+RUN groupadd $GROUP
+RUN usermod -aG "$GROUP" "$USER"
 
-USER cassandra
+USER "$USER"
 
 RUN mkdir /etc/cassandra /var/lib/cassandra
