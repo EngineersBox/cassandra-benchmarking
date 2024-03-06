@@ -8,8 +8,6 @@ GITHUB_USERNAME="${GITHUB_USERNAME:-"EngineersBox"}"
 REPOSITORY="${REPOSITORY:-"cassandra"}"
 BRANCH="${BRANCH:-"cassandra-5.0-beta1"}"
 CASSANDRA_VERSION="${CASSANDRA_VERSION:-"5.0-beta1"}"
-USER="$1"
-GROUP="$2"
 PWD=$(pwd)
 
 cat <<EOF
@@ -21,8 +19,6 @@ GITHUB_USERNAME = $GITHUB_USERNAME
 REPOSITORY = $REPOSITORY
 BRANCH = $BRANCH
 CASSANDRA_VERSION = $CASSANDRA_VERSION
-USER = $USER
-GROUP = $GROUP
 
 EOF
 
@@ -59,9 +55,12 @@ function start_docker() {
         -p 7199:7199 \
         -p 9042:9042 \
         -p 9160:9160 \
+        -v /etc/passwd:/etc/passwd:ro \
+        -v /etc/shadow:/etc/shadow:ro \
+        -v /etc/group:/etc/group:ro \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
-        -u "$USER:$GROUP" \
+        -u "$(id -u myuser):$(id -g myuser)" \
         --name "cassandra" \
         -d \
         $IMAGE \
