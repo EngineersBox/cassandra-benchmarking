@@ -44,5 +44,6 @@ RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:bin/javac::")' 
 
 RUN useradd -g $GROUP -u $USER_ID $USER
 
+USER $USER
+
 RUN mkdir /etc/cassandra /var/lib/cassandra
-RUN chown $USER:$GROUP /etc/cassandra /var/lib/cassandra
