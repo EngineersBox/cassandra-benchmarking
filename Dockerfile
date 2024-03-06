@@ -1,8 +1,8 @@
 FROM ubuntu:jammy
 
-ARG USER
-ARG USER_ID
-ARG GROUP
+# ARG USER
+# ARG USER_ID
+# ARG GROUP
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata
 
@@ -42,4 +42,4 @@ RUN apt-get update \
 RUN update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:bin/javac::")' >> ~/.bashrc
 
-RUN useradd -g $GROUP -u $USER_ID $USER
+# RUN useradd -g $GROUP -u $USER_ID $USER
