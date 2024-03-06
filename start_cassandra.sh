@@ -55,8 +55,6 @@ function start_docker() {
         -p 7199:7199 \
         -p 9042:9042 \
         -p 9160:9160 \
-        --host=0.0.0.0 \
-        --network="host" \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
         --name "cassandra" \
