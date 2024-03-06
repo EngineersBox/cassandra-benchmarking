@@ -12,7 +12,7 @@ USER="$1"
 GROUP="$2"
 PWD=$(pwd)
 
-echo <<EOF
+cat <<EOF
 Parameters:
 
 DISTRIBUTION = $DISTRIBUTION
