@@ -55,9 +55,7 @@ function start_docker() {
         -p 7199:7199 \
         -p 9042:9042 \
         -p 9160:9160 \
-        -v /etc/passwd:/etc/passwd:ro \
-        -v /etc/shadow:/etc/shadow:ro \
-        -v /etc/group:/etc/group:ro \
+        --add-host=host.docker.internal:host-gateway \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
         --name "cassandra" \
@@ -69,7 +67,7 @@ function start_docker() {
 case $DISTRIBUTION in
     tar) unpack_tar ;;
     repo) build_repo ;;
-    *) echo "[ERROR] Invalid distribution option: $DISTRIBUTION"; exit 1 ;;
+    *) echo "[ERROR] Invalid distribution option: $DISTRIBUTION, must be one of [tar,repo]"; exit 1 ;;
 esac
 
 start_docker
