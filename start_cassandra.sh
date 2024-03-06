@@ -8,6 +8,8 @@ GITHUB_USERNAME="${GITHUB_USERNAME:-"EngineersBox"}"
 REPOSITORY="${REPOSITORY:-"cassandra"}"
 BRANCH="${BRANCH:-"cassandra-5.0-beta1"}"
 CASSANDRA_VERSION="${CASSANDRA_VERSION:-"5.0-beta1"}"
+USER="$1"
+GROUP"$2"
 PWD=$(pwd)
 
 function unpack_tar() {
