@@ -50,11 +50,11 @@ function build_repo() {
 
 function start_docker() {
     docker run \
-        -p 127.0.0.1:7000:7000 \
-        -p 127.0.0.1:7001:1001 \
-        -p 127.0.0.1:7199:7199 \
-        -p 127.0.0.1:9042:9042 \
-        -p 127.0.0.1:9160:9160 \
+        -p 7000:7000 \
+        -p 7001:1001 \
+        -p 7199:7199 \
+        -p 9042:9042 \
+        -p 9160:9160 \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
         --name "cassandra" \
