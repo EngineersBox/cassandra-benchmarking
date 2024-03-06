@@ -63,7 +63,7 @@ function start_docker() {
         --name "cassandra" \
         -d \
         $IMAGE \
-        /var/lib/cassandra/bin/cassandra -R
+        /var/lib/cassandra/bin/cassandra -R -f
 }
 
 case $DISTRIBUTION in
