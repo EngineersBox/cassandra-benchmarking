@@ -60,7 +60,7 @@ function start_docker() {
         -v /etc/group:/etc/group:ro \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
-        -u "$(id -u myuser):$(id -g myuser)" \
+        -u "$(id -u):$(id -g)" \
         --name "cassandra" \
         -d \
         $IMAGE \
