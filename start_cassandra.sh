@@ -12,6 +12,20 @@ USER="$1"
 GROUP="$2"
 PWD=$(pwd)
 
+echo <<EOF
+Parameters:
+
+DISTRIBUTION = $DISTRIBUTION
+IMAGE = $IMAGE
+GITHUB_USERNAME = $GITHUB_USERNAME
+REPOSITORY = $REPOSITORY
+BRANCH = $BRANCH
+CASSANDRA_VERSION = $CASSANDRA_VERSION
+USER = $USER
+GROUP = $GROUP
+
+EOF
+
 function unpack_tar() {
     curl -OL "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz"
     curl -OL "https://downloads.apache.org/cassandra/$CASSANDRA_VERSION/apache-cassandra-$CASSANDRA_VERSION-bin.tar.gz.sha256"
