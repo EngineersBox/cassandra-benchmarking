@@ -57,7 +57,7 @@ function start_docker() {
         -p 7199:7199 \
         -p 9042:9042 \
         -p 9160:9160 \
-        -v "$PWD/apache-cassandra-$CASSANDRA_VERSION/conf:/etc/casandra" \
+        -v "$PWD/apache-cassandra-$CASSANDRA_VERSION/conf:/etc/cassandra" \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
         --name "cassandra" \
