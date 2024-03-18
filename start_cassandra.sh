@@ -44,23 +44,25 @@ function build_repo() {
         -v "$PWD:/tmp/build" \
         -w /tmp/build \
         --rm \
+        --user cassandra \
         $IMAGE \
         ./build_cassandra.sh "$REPOSITORY" "$BRANCH" "$CASSANDRA_VERSION"
 }
 
 function start_docker() {
+    # TODO: Fix user permissions, at the moment "cassandra" acts like root
     docker run \
         -p 7000:7000 \
-        -p 7001:1001 \
+        -p 7001:7001 \
         -p 7199:7199 \
         -p 9042:9042 \
         -p 9160:9160 \
+        -v "$PWD/apache-cassandra-$CASSANDRA_VERSION/conf:/etc/casandra" \
         -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/apache-cassandra-$CASSANDRA_VERSION:/var/lib/cassandra" \
         --name "cassandra" \
         -d \
-        $IMAGE \
-        /var/lib/cassandra/bin/cassandra -R -f
+        $IMAGE
 }
 
 case $DISTRIBUTION in
