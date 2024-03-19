@@ -11,8 +11,13 @@ CASSANDRA_VERSION="${CASSANDRA_VERSION:-"5.0-beta1"}"
 OTEL_JAR_VERSION="${OTEL_JAR_VERSION:-"v2.2.0"}"
 OTEL_JAR_PATH="${OTEL_JAR_PATH:-"/var/lib/otel/opentelemetry-javaagent.jar"}"
 OTEL_AGENT_CONFIG_FILE="${OTEL_AGENT_CONFIG_FILE:-"/etc/otel/otel.properties"}"
-OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-"OTEL-Cassandra"}"
+OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-"Cassandra"}"
 PWD=$(pwd)
+
+case "$PWD" in
+    */cassandra-benchmarking/scripts) echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from scripts directory. Exiting."; exit 1;;
+    *) ;;
+esac
 
 cat <<EOF
 Parameters:
@@ -65,13 +70,14 @@ function start_docker() {
         -p 4317:4317 \
         -p 4318:4318 \
         -v "$PWD/log:/var/log/otel" \
-        -v "$PWD/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
-        -v "$PWD/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
-        -v "$PWD/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml" \
+        -v "$PWD/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
+        -v "$PWD/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
+        -v "$PWD/config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml" \
         --name "otel" \
         -d \
         grafana/otel-lgtm
     # TODO: Fix user permissions, at the moment "cassandra" acts like root
+    #       requiring -R when starting C*
         #-p 7000:7000 \
         #-p 7001:7001 \
         #-p 7199:7199 \
@@ -79,10 +85,10 @@ function start_docker() {
         #-p 9160:9160 \
     docker run \
         --network=host \
-        -v "$PWD/otel.properties:$OTEL_AGENT_CONFIG_FILE" \
+        -v "$PWD/config/otel/otel.properties:$OTEL_AGENT_CONFIG_FILE" \
         -v "$PWD/opentelemetry-javaagent.jar:$OTEL_JAR_PATH" \
         -v "$PWD/$REPOSITORY/conf:/etc/cassandra" \
-        -v "$PWD/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
+        -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
         -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
         --name "cassandra" \
         -d \
@@ -90,18 +96,21 @@ function start_docker() {
 }
 
 jvm_server_opts=(jvm-server.options jvm11-server.options jvm17-server.options)
+read -r -d '' jvm_props <<EOF || :
+-javaagent:$OTEL_JAR_PATH
+-Dotel.javaagent.configuration-file=$OTEL_AGENT_CONFIG_FILE
+-Dotel.service.name=$OTEL_SERVICE_NAME
+EOF
 
 function instrument_cassandra() {
-    wget "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/$OTEL_JAR_VERSION/opentelemetry-javaagent.jar"
+    #wget "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/$OTEL_JAR_VERSION/opentelemetry-javaagent.jar"
     for opt in ${jvm_server_opts[@]}; do
-        echo "-javaagent:$OTEL_JAR_PATH" >> "$PWD/$REPOSITORY/conf/$opt"
-        echo "-Dotel.javaagent.configuration-file=$OTEL_AGENT_CONFIG_FILE" >> "$PWD/$REPOSITORY/conf/$opt"
-        echo "-Dotel.service.name=$OTEL_SERVICE_NAME" >> "$PWD/$REPOSITORY/conf/$opt"
+        echo "$jvm_props" >> "$PWD/$REPOSITORY/conf/$opt"
     done
 }
 
 case $DISTRIBUTION in
-    tar) unpack_tar ;;
+    tar) ;;#unpack_tar ;;
     repo) build_repo ;;
     *) echo "[ERROR] Invalid distribution option: $DISTRIBUTION, must be one of [tar,repo]"; exit 1 ;;
 esac

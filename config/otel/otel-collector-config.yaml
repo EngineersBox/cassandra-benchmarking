@@ -27,21 +27,27 @@ exporters:
     verbosity: detailed
   logging/logs:
     verbosity: detailed
+  file/metrics:
+    path: /var/log/otel/metrics.log
+  file/traces:
+    path: /var/log/otel/traces.log
+  file/logs:
+    path: /var/log/otel/logs.log
 
 service:
   pipelines:
     traces:
       receivers: [otlp]
       processors: [batch]
-      exporters: [otlphttp]
-      #exporters: [otlphttp,logging/traces]
+      #exporters: [otlphttp]
+      exporters: [otlphttp,logging/traces,file/traces]
     metrics:
       receivers: [otlp,prometheus/collector]
       processors: [batch]
-      exporters: [prometheusremotewrite]
-      #exporters: [prometheusremotewrite,logging/metrics]
+      #exporters: [prometheusremotewrite]
+      exporters: [prometheusremotewrite,logging/metrics,file/metrics]
     logs:
       receivers: [otlp]
       processors: [batch]
-      exporters: [loki]
-      #exporters: [loki,logging/logs]
+      #exporters: [loki]
+      exporters: [loki,logging/logs,file/logs]
