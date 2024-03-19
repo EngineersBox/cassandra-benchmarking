@@ -2,22 +2,46 @@ receivers:
   otlp:
     protocols:
       grpc:
-        endpoint: 0.0.0.0:4317
       http:
-        endpoint: 0.0.0.0:4318
+  prometheus/collector:
+    config:
+      scrape_configs:
+        - job_name: 'opentelemetry-collector'
+          static_configs:
+            - targets: ['localhost:8888']
+
+processors:
+  batch:
+
 exporters:
-  debug:
-    path: "/var/log/otel/otel.log"
+  prometheusremotewrite:
+    endpoint: http://localhost:9090/api/v1/write
+    add_metric_suffixes: true
+  otlphttp:
+    endpoint: http://localhost:4418
+  loki:
+    endpoint: http://localhost:3100/loki/api/v1/push
+  logging/metrics:
     verbosity: detailed
+  logging/traces:
+    verbosity: detailed
+  logging/logs:
+    verbosity: detailed
+
 service:
   pipelines:
     traces:
       receivers: [otlp]
-      exporters: [debug]
+      processors: [batch]
+      exporters: [otlphttp]
+      #exporters: [otlphttp,logging/traces]
     metrics:
-      receivers: [otlp]
-      exporters: [debug]
+      receivers: [otlp,prometheus/collector]
+      processors: [batch]
+      exporters: [prometheusremotewrite]
+      #exporters: [prometheusremotewrite,logging/metrics]
     logs:
       receivers: [otlp]
-      exporters: [debug]
-
+      processors: [batch]
+      exporters: [loki]
+      #exporters: [loki,logging/logs]

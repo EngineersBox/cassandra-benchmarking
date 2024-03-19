@@ -60,15 +60,16 @@ function build_repo() {
 }
 
 function start_docker() {
-        #-p 4317:4317 \
-        #-p 4318:4318 \
     docker run \
-        --network=host \
+        -p 3000:3000 \
+        -p 4317:4317 \
+        -p 4318:4318 \
         -v "$PWD/log:/var/log/otel" \
-        -v "$PWD/otel-collector-config.yaml:/etc/otelcol/config.yaml" \
+        -v "$PWD/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
+        -v "$PWD/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
         --name "otel" \
         -d \
-        otel/opentelemetry-collector-contrib:0.96.0
+        grafana/otel-lgtm
     # TODO: Fix user permissions, at the moment "cassandra" acts like root
         #-p 7000:7000 \
         #-p 7001:7001 \
