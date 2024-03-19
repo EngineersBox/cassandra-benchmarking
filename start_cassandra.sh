@@ -67,7 +67,7 @@ function start_docker() {
         -v "$PWD/log:/var/log/otel" \
         -v "$PWD/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
         -v "$PWD/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
-        -v "$PWD/granafa-dashboards.yaml:/otel-lgtm/granafa-dashboards.yaml" \
+        -v "$PWD/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml" \
         --name "otel" \
         -d \
         grafana/otel-lgtm
