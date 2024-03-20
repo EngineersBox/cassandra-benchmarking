@@ -9,8 +9,19 @@ receivers:
         - job_name: 'opentelemetry-collector'
           static_configs:
             - targets: ['localhost:8888']
+  jmx:
+    jar_path: /var/lib/otel/opentelemetry-jmx-metrics.jar
+    endpoint: cassandra:7199
+    target_system: cassandra,jvm
+    collection_interval: 10s
+    resource_attributes:
+      endpoint: cassandra:7199
 
 processors:
+  resourcedetection:
+    detectors: ["system"]
+    system:
+      hostname_sources: ["os"]
   batch:
 
 exporters:
@@ -37,17 +48,37 @@ exporters:
 service:
   pipelines:
     traces:
-      receivers: [otlp]
-      processors: [batch]
+      receivers:
+      - otlp
+      processors:
+      - batch
       #exporters: [otlphttp]
-      exporters: [otlphttp,logging/traces,file/traces]
+      exporters:
+      - otlphttp
+      - logging/traces
+      - file/traces
     metrics:
-      receivers: [otlp,prometheus/collector]
-      processors: [batch]
+      receivers:
+      - otlp
+      - prometheus/collector
+      - jmx
+      processors:
+      - batch
+      - resourcedetection
+      # - resourceattributetransposer
+      # - resource
       #exporters: [prometheusremotewrite]
-      exporters: [prometheusremotewrite,logging/metrics,file/metrics]
+      exporters:
+      - prometheusremotewrite
+      - logging/metrics
+      - file/metrics
     logs:
-      receivers: [otlp]
-      processors: [batch]
+      receivers:
+      - otlp
+      processors:
+      - batch
       #exporters: [loki]
-      exporters: [loki,logging/logs,file/logs]
+      exporters:
+      - loki
+      - logging/logs
+      - file/logs
