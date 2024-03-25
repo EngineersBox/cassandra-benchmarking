@@ -71,37 +71,37 @@ function build_repo() {
 }
 
 function start_docker() {
-    docker run \
-        --network=cassandra \
-        -p 3000:3000 \
-        -p 4317:4317 \
-        -p 4318:4318 \
-        -v "$PWD/log:/var/log/otel" \
-        -v "$PWD/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
-        -v "$PWD/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
-        -v "$PWD/config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml" \
-        -v "$PWD/opentelemetry-jmx-metrics.jar:$OTEL_JMX_JAR_PATH" \
-        --name "otel" \
-        -d \
-        grafana/otel-lgtm
+    docker compose up
+    # docker run \
+    #     --network=cassandra \
+    #     -p 3000:3000 \
+    #     -p 4317:4317 \
+    #     -p 4318:4318 \
+    #     -v "$PWD/log:/var/log/otel" \
+    #     -v "$PWD/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
+    #     -v "$PWD/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
+    #     -v "$PWD/config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml" \
+    #     -v "$PWD/opentelemetry-jmx-metrics.jar:$OTEL_JMX_JAR_PATH" \
+    #     --name "otel" \
+    #     -d \
+    #     grafana/otel-lgtm
     # TODO: Fix user permissions, at the moment "cassandra" acts like root
-    #       requiring -R when starting C*
-    docker run \
-        --network=cassandra \
-        -p 7000:7000 \
-        -p 7001:7001 \
-        -p 7199:7199 \
-        -p 9042:9042 \
-        -p 9160:9160 \
-        -v "$PWD/config/otel/otel.properties:$OTEL_AGENT_CONFIG_FILE" \
-        -v "$PWD/opentelemetry-jmx-metrics.jar:$OTEL_JMX_JAR_PATH" \
-        -v "$PWD/opentelemetry-javaagent.jar:$OTEL_COLLECTOR_JAR_PATH" \
-        -v "$PWD/$REPOSITORY/conf:/etc/cassandra" \
-        -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
-        -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
-        --name "cassandra" \
-        -d \
-        $IMAGE
+
+    #     --network=cassandra \
+    #     -p 7000:7000 \
+    #     -p 7001:7001 \
+    #     -p 7199:7199 \
+    #     -p 9042:9042 \
+    #     -p 9160:9160 \
+    #     -v "$PWD/config/otel/otel.properties:$OTEL_AGENT_CONFIG_FILE" \
+    #     -v "$PWD/opentelemetry-jmx-metrics.jar:$OTEL_JMX_JAR_PATH" \
+    #     -v "$PWD/opentelemetry-javaagent.jar:$OTEL_COLLECTOR_JAR_PATH" \
+    #     -v "$PWD/$REPOSITORY/conf:/etc/cassandra" \
+    #     -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
+    #     -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
+    #     --name "cassandra" \
+    #     -d \
+    #     $IMAGE
 }
 
 jvm_server_opts=(jvm-server.options jvm11-server.options jvm17-server.options)
