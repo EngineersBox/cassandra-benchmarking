@@ -42,6 +42,7 @@ RUN apt-get update \
         procps \
         iproute2 \
         numactl \
+        iptables \
     && apt-get clean
 
 RUN libjemalloc="$(readlink -e /usr/lib/*/libjemalloc.so.2)"; \
@@ -55,7 +56,7 @@ ENV CASSANDRA_HOME /var/lib/cassandra
 ENV CASSANDRA_CONF /etc/cassandra
 ENV PATH $CASSANDRA_HOME/bin:$PATH
 
-COPY docker-entrypoint.sh /usr/local/bin
+COPY ../docker-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # 7000: intra-node communication

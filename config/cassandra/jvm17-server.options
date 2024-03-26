@@ -118,6 +118,4 @@
 -Dio.netty.allocator.maxOrder=11
 
 # The newline in the end of file is intentional
--javaagent:/var/lib/otel/opentelemetry-javaagent.jar
--Dotel.javaagent.configuration-file=/etc/otel/otel.properties
--Dotel.service.name=Cassandra
+
