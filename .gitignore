@@ -1,5 +1,5 @@
 log
-apache-cassandra-*.tar.gz
+apache-cassandra-*.tar.gz*
 opentelemetry-*.jar
 
 # Added by cargo
