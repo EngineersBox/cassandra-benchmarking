@@ -6,6 +6,7 @@ set -e
 SOURCE_IP="$1"
 SOURCE_IP_RANGE="$2"
 SOURCE_PORT="$3"
+VERB="${4:-A}"
 
 USE_PERSISTENT_RULES=true
 if ! command -v netfilter-persistent &> /dev/null; then
@@ -14,7 +15,7 @@ if ! command -v netfilter-persistent &> /dev/null; then
 fi
 
 # See: https://www.digitalocean.com/community/tutorials/iptables-essentials-common-firewall-rules-and-commands
-iptables -A INPUT -p tcp -s "$SOURCE_IP/$SOURCE_IP_RANGE" --dport "$SOURCE_PORT" -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
+iptables -$VERB INPUT -p tcp -s "$SOURCE_IP/$SOURCE_IP_RANGE" --dport "$SOURCE_PORT" -m conntrack --ctstate NEW,ESTABLISHED -j ACCEPT
 echo "[IPTABLES] Created TCP input allowlist entry for $SOURCE_IP/$SOURCE_IP_RANGE:$SOURCE_PORT"
 iptables -A OUTPUT -p tcp --sport "$SOURCE_PORT" -m conntrack --ctstate ESTABLISHED -j ACCEPT
 echo "[IPTABLES] Created TCP output allowlist entry for port $SOURCE_PORT"
