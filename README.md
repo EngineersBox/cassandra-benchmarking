@@ -1,6 +1,25 @@
 # cassandra-benchmarking
 Cassandra Benchmarking Utilities
 
+## Build
+
+In order to create a cassandra image, run the following
+
+```bash
+docker build -t ghcr.io/engineersbox/:5.0 -f docker/instance/cassandra.dockerfile .
+```
+
+You can optionally supply a repo and commit-ish marker to build from:
+
+* `--build-arg="REPOSITORY=<repo>"` defaulting to <https://github.com/engineersbox/cassandra>
+* `--build-arg="COMMIT_ISH=<commit | branch | tag>"` defaulting to `cassandra-5.0`
+
+The image can then be pushed to the GitHub container repository
+
+```bash
+docker push ghcr.io/engineersbox/cassandra:5.0
+```
+
 ## Startup
 
 Run the `start_cassandra.sh` script to create a container with Cassandra (called cassandra) and another container with an OpenTelemetry collector.
