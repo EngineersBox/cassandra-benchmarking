@@ -1,0 +1,38 @@
+services:
+  cassandra:
+    image: ghcr.io/EngineersBox/cassandra:<version>
+    volumes:
+      - "../../config/otel/otel.properties:/etc/otel/otel.properties"
+      - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
+      - "../../opentelemetry-javaagent.jar:/var/lib/otel/opentelemetry-javaagent.jar"
+      - "../../config/cassandra:/etc/cassandra"
+    networks:
+      - host
+    # expose:
+    #   - "7199"
+    # ports:
+    #   - 7000:7000
+    #   - 7001:7001
+    #   - 9042:9042
+    #   - 9160:9160
+#     networks:
+#       - cassandra
+#   otel:
+#     image: otel
+#     build:
+#       dockerfile: otel.dockerfile
+#     volumes:
+#       - "/var/log/otel:/var/log/otel"
+#       - "../../config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
+#       - "../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
+#       - "../config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
+#       - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
+#       - "../../scripts/run-otelcol.sh:/otel-lgtm/run-otelcol.sh"
+#     ports:
+#       - 3000:3000
+#       - 4317:4317
+#       - 4318:4318
+#     networks:
+#       - cassandra
+# networks:
+#   cassandra:
