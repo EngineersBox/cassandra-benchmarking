@@ -1,11 +1,15 @@
 FROM debian:bookworm-slim
+LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra
+
+ARG REPOSITORY="https://github.com/EngineersBox/cassandra.git"
+ARG COMMIT_ISH="cassandra-5.0"
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata
 
 # explicitly set user/group IDs
-RUN set -eux; \
-	groupadd -r cassandra --gid=999; \
-	useradd -r -g cassandra --uid=999 cassandra
+RUN set -eux \
+	&& groupadd --system --gid=999 cassandra \
+	&& useradd --system --create-home --shell=/bin/bash --gid=cassandra --uid=999 cassandra
 
 RUN apt-get update \
     && apt-get install -y build-essential \
@@ -45,12 +49,32 @@ RUN apt-get update \
         iptables \
     && apt-get clean
 
-RUN libjemalloc="$(readlink -e /usr/lib/*/libjemalloc.so.2)"; \
-	ln -sT "$libjemalloc" /usr/local/lib/libjemalloc.so; \
-	ldconfig
+RUN ln -sT "$(readlink -e /usr/lib/*/libjemalloc.so.2)" /usr/local/lib/libjemalloc.so \
+	&& ldconfig
 
 RUN update-java-alternatives --set /usr/lib/jvm/java-1.17.0-openjdk-amd64
 RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:bin/javac::")' >> ~/.bashrc
+
+# Docker cache avoidance to detect new commits
+ARG CACHEBUST=0
+
+WORKDIR /var/lib
+RUN git clone "$REPOSITORY" cassandra_repo
+
+WORKDIR /var/lib/cassandra_repo
+RUN git checkout "$COMMIT_ISH"
+# Build the artifacts
+RUN ant artifacts
+# Untar everything into the correct place
+RUN export BASE_VERSION=$(xmllint --xpath 'string(/project/property[@name="base.version"]/@value)' build.xml) \
+    && tar -xvf "build/apache-cassandra-$BASE_VERSION-SNAPSHOT-bin.tar.gz" --directory=/var/lib \
+    && mv /var/lib/apache-cassandra-$BASE_VERSION-SNAPSHOT /var/lib/cassandra
+# We will mount the config into the container later in a different location
+RUN rm -rf /var/lib/cassandra/conf
+RUN chown -R cassandra:cassandra /var/lib/cassandra
+
+WORKDIR /
+RUN rm -rf /var/lib/cassandra_repo
 
 ENV CASSANDRA_HOME /var/lib/cassandra
 ENV CASSANDRA_CONF /etc/cassandra
@@ -59,6 +83,7 @@ ENV PATH $CASSANDRA_HOME/bin:$PATH
 COPY ../../scripts/docker-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["docker-entrypoint.sh"]
 
+USER cassandra
 # 7000: intra-node communication
 # 7001: TLS intra-node communication
 # 7199: JMX
