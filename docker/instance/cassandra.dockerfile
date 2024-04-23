@@ -3,13 +3,17 @@ LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra
 
 ARG REPOSITORY="https://github.com/EngineersBox/cassandra.git"
 ARG COMMIT_ISH="cassandra-5.0"
+ARG UID=1000
+ARG GID=1000
+ARG OTEL_COLLECTOR_JAR_VERSION=v2.2.0
+ARG OTEL_JMX_JAR_VERSION=v1.32.0
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata
 
 # explicitly set user/group IDs
 RUN set -eux \
-	&& groupadd --system --gid=999 cassandra \
-	&& useradd --system --create-home --shell=/bin/bash --gid=cassandra --uid=999 cassandra
+	&& groupadd --system --gid=$UID cassandra \
+	&& useradd --system --create-home --shell=/bin/bash --gid=cassandra --uid=$GID cassandra
 
 RUN apt-get update \
     && apt-get install -y build-essential \
@@ -71,6 +75,7 @@ RUN export BASE_VERSION=$(xmllint --xpath 'string(/project/property[@name="base.
     && mv /var/lib/apache-cassandra-$BASE_VERSION-SNAPSHOT /var/lib/cassandra
 # We will mount the config into the container later in a different location
 RUN rm -rf /var/lib/cassandra/conf
+RUN mkdir -p /var/lib/cassandra/logs
 RUN chown -R cassandra:cassandra /var/lib/cassandra
 
 WORKDIR /
@@ -79,6 +84,12 @@ RUN rm -rf /var/lib/cassandra_repo
 ENV CASSANDRA_HOME /var/lib/cassandra
 ENV CASSANDRA_CONF /etc/cassandra
 ENV PATH $CASSANDRA_HOME/bin:$PATH
+
+WORKDIR /var/lib
+RUN mkdir -p otel
+WORKDIR /var/lib/otel
+RUN  wget "https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/$OTEL_COLLECTOR_JAR_VERSION/opentelemetry-javaagent.jar"
+RUN wget "https://github.com/open-telemetry/opentelemetry-java-contrib/releases/download/$OTEL_JMX_JAR_VERSION/opentelemetry-jmx-metrics.jar"
 
 COPY ../../scripts/docker-entrypoint.sh /usr/local/bin
 ENTRYPOINT ["docker-entrypoint.sh"]
@@ -90,4 +101,4 @@ USER cassandra
 # 9042: CQL
 # 9160: thrift service
 EXPOSE 7000 7001 7199 9042 9160
-CMD ["cassandra", "-R", "-f"]
+CMD ["cassandra", "-f"]

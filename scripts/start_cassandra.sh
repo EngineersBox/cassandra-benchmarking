@@ -19,7 +19,9 @@ OTEL_SERVICE_NAME="${OTEL_SERVICE_NAME:-"Cassandra"}"
 PWD=$(pwd)
 
 case "$PWD" in
-    */cassandra-benchmarking/scripts) echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from scripts directory. Exiting."; exit 1;;
+    */cassandra-benchmarking)
+        echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from '$PWD' Exiting.";
+        exit 1;;
     *) ;;
 esac
 

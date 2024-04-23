@@ -13,6 +13,10 @@ You can optionally supply a repo and commit-ish marker to build from:
 
 * `--build-arg="REPOSITORY=<repo>"` defaulting to <https://github.com/engineersbox/cassandra>
 * `--build-arg="COMMIT_ISH=<commit | branch | tag>"` defaulting to `cassandra-5.0`
+* `--build-arg="UID=<cassandra user uid>"` defaulting to `1000`
+* `--build-arg="GID=<casasndra group id>"` defaulting to `1000`
+* `--build-arg="OTEL_COLLECTOR_JAR_VERSION=<version>"` defaulting to `v2.2.0`
+* `--build-arg="OTEL_JMX_JAR_VERSION=<version>"` defaulting to `v1.32.0`
 
 The image can then be pushed to the GitHub container repository
 
@@ -22,9 +26,22 @@ docker push ghcr.io/engineersbox/cassandra:5.0
 
 ## Startup
 
-Run the `start_cassandra.sh` script to create a container with Cassandra (called cassandra) and another container with an OpenTelemetry collector.
+### Casandra
 
-Both of these containers are mapped to the host network deployable in a manner acceptable for a server.
+Starting cassandra is straightforward, it requires
+
+```bash
+docker run \
+    -v "./config/cassandra:/etc/cassandra" \
+    -v "./log:/var/lib/cassandra/logs" \
+    --network=host \
+    -u cassandra:cassandra \
+    ghcr.io/engineersbox/cassandra:5.0
+```
+
+### OpenTelemetry Collector
+
+TODO (remote)
 
 ## Configuration
 
