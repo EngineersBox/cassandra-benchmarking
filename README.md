@@ -50,6 +50,7 @@ docker run \
     -v "./log:/var/lib/cassandra/logs" \
     --network=host \
     -u cassandra:cassandra \
+    --name=cassandra \
     -d \
     ghcr.io/engineersbox/cassandra:5.0
 ```
@@ -61,6 +62,7 @@ docker run \
     -v "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
     -v "./log:/var/log/otel" \
     --network=host \
+    --name=otel-collector \
     -d \
     ghcr.io/engineersbox/otel-collector:latest
 ```
