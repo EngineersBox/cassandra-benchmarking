@@ -1,5 +1,5 @@
 FROM grafana/otel-lgtm
-LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra
+LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra-benchmarking
 
 ARG OTEL_JMX_JAR_VERSION=v1.32.0
 

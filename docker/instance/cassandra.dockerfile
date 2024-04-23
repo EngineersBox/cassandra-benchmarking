@@ -1,5 +1,5 @@
 FROM debian:bookworm-slim
-LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra
+LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra-benchmarking
 
 ARG REPOSITORY="https://github.com/EngineersBox/cassandra.git"
 ARG COMMIT_ISH="cassandra-5.0"

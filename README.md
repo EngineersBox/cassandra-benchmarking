@@ -49,8 +49,8 @@ docker run \
     -v "./config/cassandra:/etc/cassandra" \
     -v "./log:/var/lib/cassandra/logs" \
     --network=host \
-    --user cassandra:cassandra \
-    --detach \
+    -u cassandra:cassandra \
+    -d \
     ghcr.io/engineersbox/cassandra:5.0
 ```
 
@@ -58,10 +58,10 @@ docker run \
 
 ```bash
 docker run \
-    --volume "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
-    --volume "./log:/var/log/otel" \
+    -v "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
+    -v "./log:/var/log/otel" \
     --network=host \
-    --detach \
+    -d \
     ghcr.io/engineersbox/otel-collector:latest
 ```
 
