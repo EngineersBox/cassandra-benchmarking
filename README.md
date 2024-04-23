@@ -3,10 +3,12 @@ Cassandra Benchmarking Utilities
 
 ## Build
 
+### Cassandra
+
 In order to create a cassandra image, run the following
 
 ```bash
-docker build -t ghcr.io/engineersbox/:5.0 -f docker/instance/cassandra.dockerfile .
+docker build -t ghcr.io/engineersbox/cassandra:5.0 -f docker/instance/cassandra.dockerfile .
 ```
 
 You can optionally supply a repo and commit-ish marker to build from:
@@ -24,6 +26,18 @@ The image can then be pushed to the GitHub container repository
 docker push ghcr.io/engineersbox/cassandra:5.0
 ```
 
+## OpenTelemetry Collector
+
+```bash
+docker build -t ghcr.io/engineersbox/otel-collector:latest -f docker/collector/otel.dockerfile .
+```
+
+* `--build-arg="OTEL_JMX_JAR_VERSION=<version>"` defaulting to `v1.32.0`
+
+```bash
+docker push ghcr.io/engineersbox/otel-collector:latest
+```
+
 ## Startup
 
 ### Casandra
@@ -35,13 +49,21 @@ docker run \
     -v "./config/cassandra:/etc/cassandra" \
     -v "./log:/var/lib/cassandra/logs" \
     --network=host \
-    -u cassandra:cassandra \
+    --user cassandra:cassandra \
+    --detach \
     ghcr.io/engineersbox/cassandra:5.0
 ```
 
 ### OpenTelemetry Collector
 
-TODO (remote)
+```bash
+docker run \
+    --volume "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
+    --volume "./log:/var/log/otel" \
+    --network=host \
+    --detach \
+    ghcr.io/engineersbox/otel-collector:latest
+```
 
 ## Configuration
 
