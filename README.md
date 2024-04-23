@@ -48,6 +48,7 @@ Starting cassandra is straightforward, it requires
 docker run \
     -v "./config/cassandra:/etc/cassandra" \
     -v "./log:/var/lib/cassandra/logs" \
+    -v "./config/otel/otel.properties:/etc/otel/otel.properties" \
     --network=host \
     -u cassandra:cassandra \
     --name=cassandra \
@@ -62,7 +63,7 @@ docker run \
     -v "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
     -v "./log:/var/log/otel" \
     --network=host \
-    --name=otel-collector \
+    --name=otel \
     -d \
     ghcr.io/engineersbox/otel-collector:latest
 ```
