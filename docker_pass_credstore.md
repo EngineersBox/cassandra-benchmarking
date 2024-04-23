@@ -13,6 +13,8 @@ sub   rsa3072 2023-06-13 [E] [expires: 2025-06-12]
 ```
 6. `pass init "<Key ID>"`
 7. `sed -i '0,/{/s/{/{\n\t"credsStore": "pass",/' ~/.docker/config.json`
-8. `pass insert docker-credential-helpers/docker-pass-initialized-check` and set the password to `pass is initialized`
-9. `pass show docker-credential-helpers/docker-pass-initialized-check` should show `pass is initialized`
-10. `docker login <url> -u <username>` and enter your password
+8. `echo "export GPG_TTY=\$(tty) >> ~/.bashrc"` or `~/.zshrc` or something else
+9. `source ~/.bashrc` or `~/.zshrc` or something else
+9. `pass insert docker-credential-helpers/docker-pass-initialized-check` and set the password to `pass is initialized`
+10. `pass show docker-credential-helpers/docker-pass-initialized-check` should show `pass is initialized`
+11. `docker login <url> -u <username>` and enter your password
