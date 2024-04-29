@@ -226,6 +226,7 @@ dependencies = [
  "flate2",
  "lazy_static",
  "serde",
+ "serde_json",
  "slog",
  "slog-async",
  "slog-json",

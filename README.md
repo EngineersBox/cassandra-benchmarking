@@ -49,7 +49,11 @@ docker run \
     -v "./config/cassandra:/etc/cassandra" \
     -v "./log:/var/lib/cassandra/logs" \
     -v "./config/otel/otel.properties:/etc/otel/otel.properties" \
-    --network=host \
+    -p 7000:7000 \
+    -p 7001:7001 \
+    -p 7199:7199 \
+    -p 9160:9160 \
+    -p 9042:9042 \
     -u cassandra:cassandra \
     --name=cassandra \
     -d \
@@ -62,10 +66,21 @@ docker run \
 docker run \
     -v "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
     -v "./log:/var/log/otel" \
-    --network=host \
+    -p 3000:3000 \
+    -p 4317:4317 \
+    -p 4318:4318 \
     --name=otel \
     -d \
     ghcr.io/engineersbox/otel-collector:latest
+```
+
+## Remote Access
+
+Deploying the collector or cassandra on a remote instance will require you to access the services
+by forwarding the relevant port to your local machine via SSH (if it is not publically visible).
+
+```bash
+ssh -L <port>:localhost:<port> <remote instance>
 ```
 
 ## Configuration
