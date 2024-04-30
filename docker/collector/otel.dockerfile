@@ -1,4 +1,4 @@
-FROM grafana/otel-lgtm:0.6.0
+FROM ghcr.io/engineersbox/otel-lgtm:latest
 LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra-benchmarking
 
 ARG OTEL_JMX_JAR_VERSION=v1.35.0
