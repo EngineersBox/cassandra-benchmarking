@@ -6,7 +6,7 @@ ARG COMMIT_ISH="cassandra-5.0"
 ARG UID=1000
 ARG GID=1000
 ARG OTEL_COLLECTOR_JAR_VERSION=v2.2.0
-ARG OTEL_JMX_JAR_VERSION=v1.32.0
+ARG OTEL_JMX_JAR_VERSION=v1.35.0
 
 RUN DEBIAN_FRONTEND="noninteractive" apt-get update && apt-get -y install tzdata
 

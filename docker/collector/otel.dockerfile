@@ -1,7 +1,7 @@
-FROM grafana/otel-lgtm
+FROM grafana/otel-lgtm:0.6.0
 LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra-benchmarking
 
-ARG OTEL_JMX_JAR_VERSION=v1.32.0
+ARG OTEL_JMX_JAR_VERSION=v1.35.0
 
 RUN yum install -y java-17-openjdk wget
 RUN echo 'export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")' >> ~/.bashrc
