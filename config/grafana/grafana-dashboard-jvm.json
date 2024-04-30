@@ -211,7 +211,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "Hints",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1349,6 +1349,6 @@
   "timezone": "",
   "title": "JVM",
   "uid": "ea19a518-53b2-45e8-aa5e-78aed520f585",
-  "version": 2,
+  "version": 3,
   "weekStart": ""
 }
