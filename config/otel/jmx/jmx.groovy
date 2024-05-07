@@ -159,23 +159,47 @@ def __instrumentCassandra() {
         "Data",
         "SSTableWriter"
     ]
-    for (prefix in serializerTypePrefixes) {
-        for (metric in serializerMetrics) {
-            def attribute = "${prefix}${metric}"
-            def serializer = otel.mbean(
-                "org.apache.cassandra.metrics:type=${attribute}SerializerRate,type=*,keyspace=*,scope=*"
-            )
-            otel.instrument(
-                serializer,
-                "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}",
-                "<todo description>",
-                attribute,
-                [
-                    "type": { mbean -> mbean.name().getKeyProperty("type") },
-                    "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
-                    "scaope": { mbean -> mbean.name().getKeyProperty("scope") }
-                ]
-            )
+    def serializerMBeanAttributes = [
+        "50thPercentile": otel.&doubleCounterCallback,
+        "75thPercentile": otel.&doubleCounterCallback,
+        "95thPercentile": otel.&doubleCounterCallback,
+        "98thPercentile": otel.&doubleCounterCallback,
+        "99thPercentile": otel.&doubleCounterCallback,
+        "999thPercentile": otel.&doubleCounterCallback,
+        "Count": otel.&longCounterCallback,
+        "OneMinuteRate": otel.&doubleCounterCallback,
+        "FifteenMinuteRate": otel.&doubleCounterCallback,
+        "FiveMinuteRate": otel.&doubleCounterCallback,
+        "OneMinuteRate": otel.&doubleCounterCallback,
+        "OneMinuteRate": otel.&doubleCounterCallback,
+        "Max": otel.&doubleCounterCallback,
+        "Mean": otel.&doubleCounterCallback,
+        "MeanRate": otel.&doubleCounterCallback,
+        "Min": otel.&doubleCounterCallback,
+        "RecentValues": otel.&longHistogram,
+        "StdDev": otel.&doubleCounterCallback,
+    ]
+    serializerTypePrefixes.each { prefix ->
+        serializerMetrics.each { metric ->
+            serializerMBeanAttributes.each { attribute, func ->
+                def name = "${prefix}${metric}"
+                def serializer = otel.mbean(
+                    "org.apache.cassandra.metrics:type=${name}SerializerRate,type=*,keyspace=*,scope=*"
+                )
+                otel.instrument(
+                    serializer,
+                    "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}",
+                    "<todo description>",
+                    "1",
+                    [
+                        "type": { mbean -> mbean.name().getKeyProperty("type") },
+                        "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
+                        "scope": { mbean -> mbean.name().getKeyProperty("scope") }
+                    ],
+                    [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
+                    func
+                )
+            }
         }
     }
 }
