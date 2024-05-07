@@ -192,7 +192,6 @@ def __instrumentCassandra() {
                     "<todo description>",
                     "1",
                     [
-                        "type": { mbean -> mbean.name().getKeyProperty("type") },
                         "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
                         "scope": { mbean -> mbean.name().getKeyProperty("scope") }
                     ],
