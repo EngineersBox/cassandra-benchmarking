@@ -183,7 +183,7 @@ def __instrumentCassandra() {
         serializerMetrics.each { metric ->
             serializerMBeanAttributes.each { attribute, func ->
                 def name = "${prefix}${metric}"
-                def serializer = otel.mbean(
+                def serializer = otel.mbeans(
                     "org.apache.cassandra.metrics:name=${name}SerializerRate,*",
                 )
                 otel.instrument(
