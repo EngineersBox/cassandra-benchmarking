@@ -184,7 +184,7 @@ def __instrumentCassandra() {
             serializerMBeanAttributes.each { attribute, func ->
                 def name = "${prefix}${metric}"
                 def serializer = otel.mbean(
-                    "org.apache.cassandra.metrics:name=${name}SerializerRate,type=*,keyspace=*,scope=*"
+                    "org.apache.cassandra.metrics:name=${name}SerializerRate,*",
                 )
                 otel.instrument(
                     serializer,
@@ -194,7 +194,7 @@ def __instrumentCassandra() {
                     [
                         "type": { mbean -> mbean.name().getKeyProperty("type") },
                         "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
-                        "scope": { mbean -> mbean.name().getKeyProperty("scope") }
+                        "scope": { mbean -> mbean.name().getKeyProperty("scope") },
                     ],
                     [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
                     func
@@ -282,10 +282,10 @@ def __instrumentJVM() {
     def operatingSystem = otel.mbeans("java.lang:type=OperatingSystem")
     otel.instrument(
         operatingSystem,
-        "jvm.os.comitted_virtual_memory",
-        "Size of commited virtual memory",
+        "jvm.os.committed_virtual_memory",
+        "Size of committed virtual memory",
         "1",
-        "CommitedVirtualMemorySize",
+        "CommittedVirtualMemorySize",
         otel.&longValueCallback
     )
     otel.instrument(
