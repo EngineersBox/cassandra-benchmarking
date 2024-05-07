@@ -176,7 +176,7 @@ def __instrumentCassandra() {
         "Mean": otel.&doubleCounterCallback,
         "MeanRate": otel.&doubleCounterCallback,
         "Min": otel.&doubleCounterCallback,
-        "RecentValues": otel.&longHistogram,
+        // "RecentValues": otel.&longHistogram,
         "StdDev": otel.&doubleCounterCallback,
     ]
     serializerTypePrefixes.each { prefix ->
@@ -186,6 +186,7 @@ def __instrumentCassandra() {
                 def serializer = otel.mbean(
                     "org.apache.cassandra.metrics:type=${name}SerializerRate,type=*,keyspace=*,scope=*"
                 )
+                println("Retrieved MBean: ${serializer} Instrumenting attribute: ${attribute}")
                 otel.instrument(
                     serializer,
                     "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}",
