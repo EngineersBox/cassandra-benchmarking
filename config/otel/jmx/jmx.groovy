@@ -141,6 +141,43 @@ def __instrumentCassandra() {
       ],
       "Count", otel.&longCounterCallback
     )
+
+    def serializerMetrics = [
+        "Cell",
+        "Cfs",
+        "ClusteringKey",
+        "Column",
+        "ColumnSubset",
+        "IndexEntry",
+        "RangeTombstoneMarker",
+        "RowBody",
+        "Row"
+    ]
+    def serializerTypePrefixes = [
+        "Partition",
+        "Index",
+        "Data",
+        "SSTableWriter"
+    ]
+    for (prefix in serializerTypePrefixes) {
+        for (metric in serializerMetrics) {
+            def attribute = "${prefix}${metric}"
+            def serializer = otel.mbean(
+                "org.apache.cassandra.metrics:type=${attribute}SerializerRate,type=*,keyspace=*,scope=*"
+            )
+            otel.instrument(
+                serializer,
+                "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}",
+                "<todo description>",
+                attribute,
+                [
+                    "type": { mbean -> mbean.name().getKeyProperty("type") },
+                    "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
+                    "scaope": { mbean -> mbean.name().getKeyProperty("scope") }
+                ]
+            )
+        }
+    }
 }
 
 /* =============================
