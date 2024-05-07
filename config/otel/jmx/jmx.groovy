@@ -186,7 +186,6 @@ def __instrumentCassandra() {
                 def serializer = otel.mbean(
                     "org.apache.cassandra.metrics:name=${name}SerializerRate,type=*,keyspace=*,scope=*"
                 )
-                println("Retrieved MBean: ${serializer} Instrumenting attribute: ${attribute}")
                 otel.instrument(
                     serializer,
                     "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}",
