@@ -188,7 +188,7 @@ def __instrumentCassandra() {
                 )
                 otel.instrument(
                     serializer,
-                    "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}",
+                    "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}.${attribute.toLowerCase()}",
                     "<todo description>",
                     "1",
                     [
