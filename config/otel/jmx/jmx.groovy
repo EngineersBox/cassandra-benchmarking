@@ -184,7 +184,7 @@ def __instrumentCassandra() {
             serializerMBeanAttributes.each { attribute, func ->
                 def name = "${prefix}${metric}"
                 def serializer = otel.mbean(
-                    "org.apache.cassandra.metrics:name=${name}SerializerRatetype=*,keyspace=*,scope=*"
+                    "org.apache.cassandra.metrics:name=${name}SerializerRate,type=*,keyspace=*,scope=*"
                 )
                 println("Retrieved MBean: ${serializer} Instrumenting attribute: ${attribute}")
                 otel.instrument(
