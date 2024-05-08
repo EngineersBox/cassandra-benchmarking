@@ -148,11 +148,13 @@ def __instrumentCassandra() {
         "Cfs",
         "ClusteringKey",
         "Column",
+        "AllColumns",
         "ColumnSubset",
         "IndexEntry",
         "RangeTombstoneMarker",
         "RowBody",
-        "Row"
+        "Row",
+        "Partition"
     ]
     def serializerTypePrefixes = [
         "Partition",
