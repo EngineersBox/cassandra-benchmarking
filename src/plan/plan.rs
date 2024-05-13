@@ -1,23 +1,22 @@
 use std::{
-    io::{
+    collections::HashMap, io::{
         Error,
         ErrorKind
-    },
-    net::IpAddr
+    }, net::IpAddr
 };
 use serde::Deserialize;
 use std::option::Option;
 
 #[derive(Deserialize, PartialEq, Eq, Debug, Default)]
 pub struct Plan {
-    instances: Vec<IpAddr>,
-    image: String,
-    configs: Vec<String>,
+    pub instances: HashMap<String, IpAddr>,
+    pub image: String,
+    pub configs: HashMap<String, String>,
 }
 
 impl Plan {
 
-    pub fn validate(self) -> Option<Error> {
+    pub fn validate(&self) -> Option<Error> {
         if self.instances.len() == 0 {
             return Some(Error::new(
                 ErrorKind::InvalidData,

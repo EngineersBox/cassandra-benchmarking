@@ -143,6 +143,10 @@ def __instrumentCassandra() {
         otel.&longCounterCallback
     )
 
+    // Mapping of keyspace to table
+    def scopes = [
+        "ycsb": "usertable"
+    ]
     def serializerMetrics = [
         "Cell",
         "Cfs",
@@ -185,23 +189,25 @@ def __instrumentCassandra() {
     serializerTypePrefixes.each { prefix ->
         serializerMetrics.each { metric ->
             serializerMBeanAttributes.each { attribute, func ->
-                def name = "${prefix}${metric}"
-                def serializer = otel.mbeans(
-                    "org.apache.cassandra.metrics:name=${name}SerializerRate,*",
-                )
-                otel.instrument(
-                    serializer,
-                    "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}.${attribute.toLowerCase()}",
-                    "${prefix} ${metric} Serializer ${attribute}",
-                    "1",
-                    [
-                        "type": { mbean -> mbean.name().getKeyProperty("type") },
-                        "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
-                        "scope": { mbean -> mbean.name().getKeyProperty("scope") },
-                    ],
-                    [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
-                    func
-                )
+                scopes.each { keyspace, table ->
+                    def name = "${prefix}${metric}"
+                    def serializer = otel.mbeans(
+                        "org.apache.cassandra.metrics:name=${name}SerializerRate,keyspace=${attribute},scope=${table},*",
+                    )
+                    otel.instrument(
+                        serializer,
+                        "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}.${attribute.toLowerCase()}",
+                        "${prefix} ${metric} Serializer ${attribute}",
+                        "1",
+                        [
+                            "type": { mbean -> mbean.name().getKeyProperty("type") },
+                            "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
+                            "scope": { mbean -> mbean.name().getKeyProperty("scope") },
+                        ],
+                        [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
+                        func
+                    )
+                }
             }
         }
     }
