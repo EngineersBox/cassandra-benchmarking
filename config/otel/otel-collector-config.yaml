@@ -13,13 +13,13 @@ receivers:
         - job_name: 'opentelemetry-collector'
           static_configs:
             - targets: ['localhost:8888']
-  jmx:
-    jar_path: /var/lib/otel/opentelemetry-jmx-metrics.jar
-    endpoint: cassandra:7199
-    target_system: cassandra,jvm
-    collection_interval: 10s
-    resource_attributes:
-      endpoint: cassandra:7199
+  # jmx:
+  #   jar_path: /var/lib/otel/opentelemetry-jmx-metrics.jar
+  #   endpoint: cassandra:7199
+  #   target_system: cassandra,jvm
+  #   collection_interval: 10s
+  #   resource_attributes:
+  #     endpoint: cassandra:7199
   hostmetrics:
     collection_interval: 10s
     scrapers:
@@ -43,14 +43,14 @@ exporters:
     endpoint: http://localhost:9090/api/v1/write
     add_metric_suffixes: true
   otlphttp:
-    endpoint: http://localhost:4418
+    endpoint: http://localhost:4318
   loki:
     endpoint: http://localhost:3100/loki/api/v1/push
-  logging/metrics:
+  debug/metrics:
     verbosity: detailed
-  logging/traces:
+  debug/traces:
     verbosity: detailed
-  logging/logs:
+  debug/logs:
     verbosity: detailed
   file/metrics:
     path: /var/log/otel/metrics.log
@@ -69,13 +69,13 @@ service:
       #exporters: [otlphttp]
       exporters:
       - otlphttp
-      - logging/traces
+      - debug/traces
       - file/traces
     metrics:
       receivers:
       - otlp
       - prometheus/collector
-      - jmx
+      # - jmx
       processors:
       - batch
       - resourcedetection
@@ -84,7 +84,7 @@ service:
       #exporters: [prometheusremotewrite]
       exporters:
       - prometheusremotewrite
-      - logging/metrics
+      - debug/metrics
       - file/metrics
     logs:
       receivers:
@@ -94,5 +94,5 @@ service:
       #exporters: [loki]
       exporters:
       - loki
-      - logging/logs
+      - debug/logs
       - file/logs
