@@ -2,6 +2,7 @@ mod logging;
 mod net;
 mod plan;
 mod deployment;
+mod app;
 
 extern crate serde;
 extern crate serde_json;
@@ -16,6 +17,7 @@ extern crate slog_async;
 extern crate slog_json;
 extern crate lazy_static;
 extern crate tokio;
+extern crate zip;
 
 use std::io::BufReader;
 use std::fs::File;
