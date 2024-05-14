@@ -66,6 +66,8 @@ docker run \
 docker run \
     -v "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
     -v "./log:/var/log/otel" \
+    -v "./config/otel/otel.properties:/otel-lgtm/jmx.properties" \
+    -v "./config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy" \
     -p 3000:3000 \
     -p 4317:4317 \
     -p 4318:4318 \
