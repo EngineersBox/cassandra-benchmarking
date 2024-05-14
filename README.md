@@ -83,6 +83,20 @@ by forwarding the relevant port to your local machine via SSH (if it is not publ
 ssh -L <port>:localhost:<port> <remote instance>
 ```
 
+## User Permissions
+
+Assuming that you have the container user congiured as `1000:1000` and your user on the host mapped
+as `<user>:100000:65536` in both `/etc/subuid` and `/etc/subgid`, then you will need ensure that any
+directories/files mounted into the container used by the cassandra user are owned by `100999:100999`.
+
+The reason for this is that the mapping will move any host users from 0 to 100000 up by 100000. As such
+a host uid:gid binding of `1000:1000` corresponds to `100999:100999`. To do this, just run the following
+over anything you intend to mount into the Cassandra container:
+
+```bash
+sudo chmod -R 100999:100999 <path>
+```
+
 ## Configuration
 
 * See the `start_cassandra.sh` script header for variables that can be set to customise the deployment.
