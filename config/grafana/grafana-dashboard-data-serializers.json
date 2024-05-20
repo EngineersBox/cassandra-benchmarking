@@ -18,7 +18,7 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 5,
+  "id": 4,
   "links": [],
   "panels": [
     {
@@ -76,7 +76,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -175,7 +176,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -274,7 +276,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -373,7 +376,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -472,7 +476,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -571,7 +576,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -631,6 +637,7 @@
             "axisColorMode": "text",
             "axisLabel": "",
             "axisPlacement": "auto",
+            "axisWidth": -2,
             "barAlignment": 0,
             "drawStyle": "line",
             "fillOpacity": 0,
@@ -670,7 +677,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -769,7 +777,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -868,7 +877,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -967,7 +977,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -1167,7 +1178,7 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(cassandra_serializer_data_allcolumns_50thpercentile_total{type!=\"Table\",keyspace=~\"$Keyspace\",scope=~\"$Table\"},scope)",
+        "definition": "label_values(cassandra_serializer_data_allcolumns_50thpercentile_total{type!=\"Table\"},scope)",
         "hide": 1,
         "includeAll": false,
         "multi": true,
@@ -1175,7 +1186,7 @@
         "options": [],
         "query": {
           "qryType": 1,
-          "query": "label_values(cassandra_serializer_data_allcolumns_50thpercentile_total{type!=\"Table\",keyspace=~\"$Keyspace\",scope=~\"$Table\"},scope)",
+          "query": "label_values(cassandra_serializer_data_allcolumns_50thpercentile_total{type!=\"Table\"},scope)",
           "refId": "PrometheusVariableQueryEditor-VariableQuery"
         },
         "refresh": 1,
@@ -1187,13 +1198,13 @@
     ]
   },
   "time": {
-    "from": "now-1h",
+    "from": "now-15m",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Data Serializer",
   "uid": "bdlk19uz6p9tsf",
-  "version": 6,
+  "version": 4,
   "weekStart": ""
 }
