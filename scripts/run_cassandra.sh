@@ -44,6 +44,7 @@ docker run \
     -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
     -v "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" \
     --name="cassandra" \
+    -u cassandra:cassandra \
     -d \
     ${@:2} \
     "$CASSANDRA_IMAGE:$CASSANDRA_TAG"
