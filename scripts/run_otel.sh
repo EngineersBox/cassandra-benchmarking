@@ -37,4 +37,4 @@ docker run \
     --name "otel" \
     -d \
     ${@:2} \
-    grafana/otel-lgtm
+    ghcr.io/engineersbox/otel-lgtm:latest
