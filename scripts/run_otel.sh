@@ -11,16 +11,17 @@ case "$PWD" in
     *) ;;
 esac
 
-source scripts/parameters.sh
-
 if [ "$#" -lt 1 ]; then
     echo "Usage: run_otel <refresh: y|n> [... <docker args>]"
     exit 1
 fi
+source scripts/parameters.sh
 
-if [ "$1" -eq "y" ]; then
+
+CLEAR_ALL="$1"
+if [ "${CLEAR_ALL,,}" = "y" ]; then
+    sudo vmprobe cache evict data
     rm -rf data
-    sudo vmprobe evict data
 fi
 
 docker run \
@@ -36,4 +37,5 @@ docker run \
     -v "$PWD/opentelemetry-jmx-metrics.jar:$OTEL_JMX_JAR_PATH" \
     --name "otel" \
     -d \
+    ${@:2} \
     grafana/otel-lgtm

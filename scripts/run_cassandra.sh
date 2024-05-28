@@ -18,6 +18,20 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
+CLEAR_ALL="$1"
+if [ "${CLEAR_ALL,,}" = "y" ]; then
+  sudo vmprobe cache evict /mnt/nvme/cassandra_data  
+	echo "[INFO] Evicted all page cache entries"
+	sudo rm -rf /mnt/nvme/cassandra_data/*
+	echo "[INFO] Cleaned cassandra data mount"
+	docker container stop cassandra
+	docker container rm cassandra
+fi
+
+echo "${@:2}"
+
+echo "[INFO] Starting Cassandra..."
+
 if [ "$1" -eq "y" ]; then
     rm -rf /mnt/nvme/cassandra_data/*
     sudo vmprobe evict /mnt/nvme/cassandra_data  
@@ -35,7 +49,7 @@ docker run \
     -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
     -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
     -v "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" \
-    --name "cassandra" \
+    --name="cassandra" \
     -d \
-    $@ \
+    ${@:2} \
     "$CASSANDRA_IMAGE:$CASSANDRA_TAG"
