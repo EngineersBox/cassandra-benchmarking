@@ -192,7 +192,7 @@ def __instrumentCassandra() {
                 scopes.each { keyspace, table ->
                     def name = "${prefix}${metric}"
                     def serializer = otel.mbeans(
-                        "org.apache.cassandra.metrics:name=${name}SerializerRate,keyspace=${attribute},scope=${table},*",
+                        "org.apache.cassandra.metrics:name=${name}SerializerRate,keyspace=${keyspace},scope=${table},*",
                     )
                     otel.instrument(
                         serializer,
