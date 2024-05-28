@@ -41,9 +41,8 @@ docker run \
     -p 9160:9160 \
     -v "$PWD/log:/var/log/cassandra" \
     -v "$PWD/config/otel/otel.properties:$OTEL_AGENT_CONFIG_FILE" \
-    -v "$PWD/$REPOSITORY/conf:/etc/cassandra" \
+    -v "$PWD/config/cassandra:/etc/cassandra" \
     -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
-    -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
     -v "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" \
     --name="cassandra" \
     -u cassandra:cassandra \
