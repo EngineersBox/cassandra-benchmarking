@@ -4,7 +4,7 @@ set -e
 
 PWD=$(pwd)
 
-case "$PWD" in
+case $(basename "$PWD") in
     */cassandra-benchmarking)
         echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from '$PWD' Exiting.";
         exit 1;;
