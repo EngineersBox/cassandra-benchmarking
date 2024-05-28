@@ -1,4 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+set -e
+
+PWD=$(pwd)
+
+case "$PWD" in
+    */cassandra-benchmarking)
+        echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from '$PWD' Exiting.";
+        exit 1;;
+    *) ;;
+esac
+
+source scripts/parameters.sh
 
 if [ $# -lt 1 ]; then
     echo "Usage: run_cassandra.sh <refresh: y|n> [... <docker args>]"
@@ -18,8 +31,6 @@ docker run \
     -p 9160:9160 \
     -v "$PWD/log:/var/log/cassandra" \
     -v "$PWD/config/otel/otel.properties:$OTEL_AGENT_CONFIG_FILE" \
-    -v "$PWD/opentelemetry-jmx-metrics.jar:$OTEL_JMX_JAR_PATH" \
-    -v "$PWD/opentelemetry-javaagent.jar:$OTEL_COLLECTOR_JAR_PATH" \
     -v "$PWD/$REPOSITORY/conf:/etc/cassandra" \
     -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
     -v "$PWD/$REPOSITORY:/var/lib/cassandra" \
@@ -27,4 +38,4 @@ docker run \
     --name "cassandra" \
     -d \
     $@ \
-    ghcr.io/engineersbox/cassandra:5.0
+    "$CASSANDRA_IMAGE:$CASSANDRA_TAG"

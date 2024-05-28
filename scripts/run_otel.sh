@@ -1,5 +1,18 @@
 #!/bin/bash
 
+set -e
+
+PWD=$(pwd)
+
+case "$PWD" in
+    */cassandra-benchmarking)
+        echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from '$PWD' Exiting.";
+        exit 1;;
+    *) ;;
+esac
+
+source scripts/parameters.sh
+
 if [ "$#" -lt 1 ]; then
     echo "Usage: run_otel <refresh: y|n> [... <docker args>]"
     exit 1
