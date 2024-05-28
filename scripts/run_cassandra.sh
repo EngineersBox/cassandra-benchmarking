@@ -5,10 +5,9 @@ set -e
 PWD=$(pwd)
 
 case $(basename "$PWD") in
-    cassandra-benchmarking)
-        echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from '$PWD' Exiting.";
-        exit 1;;
-    *) ;;
+    cassandra-benchmarking) ;;
+    *) echo "[ERROR] Script should be run from cassandra-benchmarking directory, not from '$PWD' Exiting.";
+       exit 1;;
 esac
 
 source scripts/parameters.sh
