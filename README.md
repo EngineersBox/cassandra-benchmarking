@@ -40,40 +40,34 @@ docker push ghcr.io/engineersbox/otel-collector:latest
 
 ## Startup
 
+### Configuration
+
+Ensure you set the addresses for the Cassandra instance and collector instances within the
+`config/otel/otel-collector.properties` and `config/otel/otel-instance.properties` config
+files.
+
+Choose any additional appropriate configurations for Cassandra within the `config/cassandra`
+directory.
+
+This repo relies on the `vmprobe` utility, so make sure that is installed with your favourite
+package manager.
+
 ### Casandra
 
-Starting cassandra is straightforward, it requires
+Starting cassandra is straightforward, it requires the usage of the following and a parameter
+denoting whether to remove all data and flush page cache. It can also be supplimented with
+additional arguments to the `docker run` command.
 
 ```bash
-docker run \
-    -v "./config/cassandra:/etc/cassandra" \
-    -v "./log:/var/lib/cassandra/logs" \
-    -v "./config/otel/otel.properties:/etc/otel/otel.properties" \
-    -p 7000:7000 \
-    -p 7001:7001 \
-    -p 7199:7199 \
-    -p 9160:9160 \
-    -p 9042:9042 \
-    -u cassandra:cassandra \
-    --name=cassandra \
-    -d \
-    ghcr.io/engineersbox/cassandra:5.0
+sudo ./scripts/run_cassandra.sh <refresh: y|n> [...<docker args>]
 ```
 
 ### OpenTelemetry Collector
 
+Similarly for the OTEL collector with:
+
 ```bash
-docker run \
-    -v "./config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
-    -v "./log:/var/log/otel" \
-    -v "./config/otel/otel.properties:/otel-lgtm/jmx.properties" \
-    -v "./config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy" \
-    -p 3000:3000 \
-    -p 4317:4317 \
-    -p 4318:4318 \
-    --name=otel \
-    -d \
-    ghcr.io/engineersbox/otel-collector:latest
+sudo ./scripts/run_otel.sh <refresh: y|n> [... <docker args>]
 ```
 
 ## Remote Access

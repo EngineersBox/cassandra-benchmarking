@@ -229,6 +229,7 @@ def __instrumentJVM() {
         otel.&longValueCallback
     )
 
+    // TODO: Rework this collection for GC since it's incorrect
     def garbageCollector = otel.mbeans("java.lang:type=GarbageCollector,*")
     otel.instrument(
         garbageCollector,

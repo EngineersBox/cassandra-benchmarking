@@ -31,6 +31,8 @@ docker run \
     -p 4317:4317 \
     -p 4318:4318 \
     -v "$PWD/log:/var/log/otel" \
+    -v "$PWD/config/otel/otel-collector.properties:/otel-lgtm/jmx.properties" \
+    -v "$PWD/config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy" \
     -v "$PWD/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml" \
     -v "$PWD/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json" \
     -v "$PWD/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-data-serializer.json" \
