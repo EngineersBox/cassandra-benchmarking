@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -e
-
 PWD=$(pwd)
 
 case $(basename "$PWD") in
