@@ -25,8 +25,10 @@ if [ "${CLEAR_ALL,,}" = "y" ]; then
 	echo "[INFO] Cleaned cassandra data mount"
 	docker container stop cassandra
 	docker container rm cassandra
+  echo "[INFO] Stopped and removed previous cassandra container"
 fi
 
+echo "[INFO] Extra docker parameters:"
 echo "${@:2}"
 
 echo "[INFO] Starting Cassandra..."
