@@ -19,8 +19,13 @@ source scripts/parameters.sh
 
 CLEAR_ALL="$1"
 if [ "${CLEAR_ALL,,}" = "y" ]; then
-    sudo vmprobe cache evict data
-    rm -rf data
+  sudo vmprobe cache evict data
+	echo "[INFO] Evicted all page cache entries"
+	sudo rm -rf data
+	echo "[INFO] Cleaned OTEL data mount"
+	docker container stop otel
+	docker container rm otel
+  echo "[INFO] Stopped and removed previous OTEL container"
 fi
 
 docker run \
