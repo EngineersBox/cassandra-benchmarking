@@ -31,11 +31,6 @@ echo "${@:2}"
 
 echo "[INFO] Starting Cassandra..."
 
-if [ "$1" -eq "y" ]; then
-    rm -rf /mnt/nvme/cassandra_data/*
-    sudo vmprobe evict /mnt/nvme/cassandra_data  
-fi
-
 docker run \
     -p 7000:7000 \
     -p 7001:7001 \

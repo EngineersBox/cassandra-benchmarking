@@ -14,8 +14,8 @@ if [ "$#" -lt 1 ]; then
     echo "Usage: run_otel <refresh: y|n> [... <docker args>]"
     exit 1
 fi
-source scripts/parameters.sh
 
+source scripts/parameters.sh
 
 CLEAR_ALL="$1"
 if [ "${CLEAR_ALL,,}" = "y" ]; then
