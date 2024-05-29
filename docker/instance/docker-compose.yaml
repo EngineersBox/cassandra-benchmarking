@@ -25,7 +25,8 @@ services:
       - /usr/src:/hostfs/usr/src 
       - /lib/modules:/hostfs/lib/modules 
     env_file:
-      - .env
+      - path: .env
+        required: true
     network_mode: host
     pid: host
     privileged: true
