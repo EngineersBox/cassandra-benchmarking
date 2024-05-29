@@ -3,10 +3,10 @@ services:
     container_name: cassandra
     image: ghcr.io/engineersbox/cassandra:5.0
     volumes:
-      - "./log:/var/log/cassandra" 
-      - "./config/otel/otel-instance.properties:/etc/otel/otel.properties" 
-      - "./config/cassandra:/etc/cassandra" 
-      - "./config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" 
+      - "../../log:/var/log/cassandra" 
+      - "../../config/otel/otel-instance.properties:/etc/otel/otel.properties" 
+      - "../../config/cassandra:/etc/cassandra" 
+      - "../../config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" 
       - "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" 
     ports:
       - 7000:7000
