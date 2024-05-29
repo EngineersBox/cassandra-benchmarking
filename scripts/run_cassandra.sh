@@ -8,42 +8,38 @@ case $(basename "$PWD") in
        exit 1;;
 esac
 
-source scripts/parameters.sh
+if [ $# -ne 1 ]; then
+    echo "Usage: run_cassandra.sh <refresh: y|n>"
+    exit 1
+fi
 
-if [ $# -lt 1 ]; then
-    echo "Usage: run_cassandra.sh <refresh: y|n> [... <docker args>]"
+ENV_FILE="docker/instance/.env"
+
+if [ ! -f "$ENV_FILE"  ]; then
+    echo "[ERROR] Missing required env file: $ENV_FILE"
     exit 1
 fi
 
 CLEAR_ALL="$1"
 if [ "${CLEAR_ALL,,}" = "y" ]; then
-  sudo vmprobe cache evict /mnt/nvme/cassandra_data  
-	echo "[INFO] Evicted all page cache entries"
-	sudo rm -rf /mnt/nvme/cassandra_data/*
-	echo "[INFO] Cleaned cassandra data mount"
-	docker container stop cassandra
-	docker container rm cassandra
-  echo "[INFO] Stopped and removed previous cassandra container"
+    sudo vmprobe cache evict /mnt/nvme/cassandra_data  
+    echo "[INFO] Evicted all page cache entries"
+    sudo rm -rf /mnt/nvme/cassandra_data/*
+    echo "[INFO] Cleaned cassandra data mount"
+    pushd
+    cd docker/instance
+    docker compose down
+    popd
+    echo "[INFO] Stopped and removed previous cassandra container"
 fi
 
-echo "[INFO] Extra docker parameters:"
-echo "${@:2}"
+echo "[INFO] Env file parameters:"
+cat $ENV_FILE
 
 echo "[INFO] Starting Cassandra..."
 
-docker run \
-    -p 7000:7000 \
-    -p 7001:7001 \
-    -p 7199:7199 \
-    -p 9042:9042 \
-    -p 9160:9160 \
-    -v "$PWD/log:/var/log/cassandra" \
-    -v "$PWD/config/otel/otel-instance.properties:$OTEL_AGENT_CONFIG_FILE" \
-    -v "$PWD/config/cassandra:/etc/cassandra" \
-    -v "$PWD/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" \
-    -v "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" \
-    --name="cassandra" \
-    -u cassandra:cassandra \
-    -d \
-    ${@:2} \
-    "$CASSANDRA_IMAGE:$CASSANDRA_TAG"
+pushd
+cd docker/instance
+docker compose up -d 
+popd
+

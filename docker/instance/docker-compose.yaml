@@ -1,38 +1,30 @@
 services:
   cassandra:
-    image: ghcr.io/EngineersBox/cassandra:<version>
+    container_name: cassandra
+    image: ghcr.io/engineersbox/cassandra:5.0
     volumes:
-      - "../../config/otel/otel.properties:/etc/otel/otel.properties"
-      - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
-      - "../../opentelemetry-javaagent.jar:/var/lib/otel/opentelemetry-javaagent.jar"
-      - "../../config/cassandra:/etc/cassandra"
-    networks:
-      - host
-    # expose:
-    #   - "7199"
-    # ports:
-    #   - 7000:7000
-    #   - 7001:7001
-    #   - 9042:9042
-    #   - 9160:9160
-#     networks:
-#       - cassandra
-#   otel:
-#     image: otel
-#     build:
-#       dockerfile: otel.dockerfile
-#     volumes:
-#       - "/var/log/otel:/var/log/otel"
-#       - "../../config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
-#       - "../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
-#       - "../config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
-#       - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
-#       - "../../scripts/run-otelcol.sh:/otel-lgtm/run-otelcol.sh"
-#     ports:
-#       - 3000:3000
-#       - 4317:4317
-#       - 4318:4318
-#     networks:
-#       - cassandra
-# networks:
-#   cassandra:
+      - "./log:/var/log/cassandra" 
+      - "./config/otel/otel-instance.properties:/etc/otel/otel.properties" 
+      - "./config/cassandra:/etc/cassandra" 
+      - "./config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" 
+      - "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" 
+    ports:
+      - 7000:7000
+      - 7001:7001
+      - 7199:7199
+      - 9042:9042
+      - 9160:9160
+  otel-kernel:
+    container_name: otel-kernel
+    image: opentelemetry-ebpf-kernel-collector:v0.10.2
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
+      - /etc:/hostfs/etc 
+      - /var/cache:/hostfs/cache 
+      - /usr/src:/hostfs/usr/src 
+      - /lib/modules:/hostfs/lib/modules 
+    network: host
+    pid: host
+    privileged: true
+

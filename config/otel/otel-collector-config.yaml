@@ -13,13 +13,9 @@ receivers:
         - job_name: 'opentelemetry-collector'
           static_configs:
             - targets: ['localhost:8888']
-  # jmx:
-  #   jar_path: /var/lib/otel/opentelemetry-jmx-metrics.jar
-  #   endpoint: cassandra:7199
-  #   target_system: cassandra,jvm
-  #   collection_interval: 10s
-  #   resource_attributes:
-  #     endpoint: cassandra:7199
+        - job_name: 'opentelemetry-ebpf-reducer'
+          static_configs:
+            - targets: ['reducer:7010']
   hostmetrics:
     collection_interval: 10s
     scrapers:
@@ -66,7 +62,6 @@ service:
       - otlp
       processors:
       - batch
-      #exporters: [otlphttp]
       exporters:
       - otlphttp
       - debug/traces
@@ -79,9 +74,6 @@ service:
       processors:
       - batch
       - resourcedetection
-      # - resourceattributetransposer
-      # - resource
-      #exporters: [prometheusremotewrite]
       exporters:
       - prometheusremotewrite
       - debug/metrics
@@ -91,7 +83,6 @@ service:
       - otlp
       processors:
       - batch
-      #exporters: [loki]
       exporters:
       - loki
       - debug/logs
