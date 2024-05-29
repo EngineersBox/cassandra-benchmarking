@@ -25,9 +25,9 @@ if [ "${CLEAR_ALL,,}" = "y" ]; then
     echo "[INFO] Stopped and removed previous OTEL container"
 fi
 
-echo "[INFO] Starting Cassandra..."
+echo "[INFO] Starting OTEL... " 
 
-pushd docker/instance
+pushd docker/collector
 docker compose up -d 
 popd
 
