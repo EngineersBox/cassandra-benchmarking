@@ -19,8 +19,7 @@ if [ "${CLEAR_ALL,,}" = "y" ]; then
     echo "[INFO] Evicted all page cache entries"
     sudo rm -rf data
     echo "[INFO] Cleaned OTEL data mount"
-    pushd
-    cd docker/collector
+    pushd docker/collector
     docker compose down
     popd
     echo "[INFO] Stopped and removed previous OTEL container"
@@ -28,8 +27,7 @@ fi
 
 echo "[INFO] Starting Cassandra..."
 
-pushd
-cd docker/instance
+pushd docker/instance
 docker compose up -d 
 popd
 
