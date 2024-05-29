@@ -24,6 +24,8 @@ services:
       - /var/cache:/hostfs/cache 
       - /usr/src:/hostfs/usr/src 
       - /lib/modules:/hostfs/lib/modules 
+    env_file:
+      - .env
     network_mode: host
     pid: host
     privileged: true
