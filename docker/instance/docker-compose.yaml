@@ -16,7 +16,7 @@ services:
       - 9160:9160
   otel-kernel:
     container_name: otel-kernel
-    image: opentelemetry-ebpf-kernel-collector:v0.10.2
+    image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock 
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
