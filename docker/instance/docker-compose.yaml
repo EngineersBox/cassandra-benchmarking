@@ -24,7 +24,7 @@ services:
       - /var/cache:/hostfs/cache 
       - /usr/src:/hostfs/usr/src 
       - /lib/modules:/hostfs/lib/modules 
-    network: host
+    networks: host
     pid: host
     privileged: true
 
