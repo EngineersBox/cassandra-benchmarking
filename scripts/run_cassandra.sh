@@ -40,6 +40,6 @@ echo "[INFO] Starting Cassandra..."
 
 pushd docker/instance
 sudo docker compose up -d otel-kernel
-sudo docker compose up -d cassandra
+docker compose up -d cassandra
 popd
 
