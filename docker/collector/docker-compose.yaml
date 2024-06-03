@@ -21,6 +21,7 @@ services:
   reducer:
     container_name: reducer
     image: otel/opentelemetry-ebpf-reducer:v0.10.2
+    command: ["--port", "8000", "--prom", "0.0.0.0:7010", "--log-console", "--debug"]
     volumes:
       - "../../log:/var/log"
     ports:

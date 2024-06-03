@@ -17,6 +17,7 @@ services:
   otel-kernel:
     container_name: otel-kernel
     image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2
+    command: ["--log-console"]
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock 
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
