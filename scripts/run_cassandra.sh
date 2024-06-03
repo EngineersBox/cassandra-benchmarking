@@ -28,6 +28,7 @@ if [ "${CLEAR_ALL,,}" = "y" ]; then
     echo "[INFO] Cleaned cassandra data mount"
     pushd docker/instance
     docker compose down
+    sudo docker compose down
     popd
     echo "[INFO] Stopped and removed previous cassandra container"
 fi
@@ -38,6 +39,7 @@ cat $ENV_FILE
 echo "[INFO] Starting Cassandra..."
 
 pushd docker/instance
-docker compose up -d 
+sudo docker compose up -d otel-kernel
+sudo docker compose up -d cassandra
 popd
 

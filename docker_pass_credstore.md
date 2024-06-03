@@ -18,3 +18,6 @@ sub   rsa3072 2023-06-13 [E] [expires: 2025-06-12]
 9. `pass insert docker-credential-helpers/docker-pass-initialized-check` and set the password to `pass is initialized`
 10. `pass show docker-credential-helpers/docker-pass-initialized-check` should show `pass is initialized`
 11. `docker login <url> -u <username>` and enter your password
+
+Note that when you are using `sudo` with `pass` or `docker`, you will need to use `sudo --preserve-env` to utilise the GPG 
+keyring associated with your current linux user.
