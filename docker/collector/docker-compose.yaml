@@ -25,6 +25,7 @@ services:
       - "../../log:/var/log"
     ports:
       - 7010:7010
+      - 8000:8000
     networks:
       - otel
 networks:
