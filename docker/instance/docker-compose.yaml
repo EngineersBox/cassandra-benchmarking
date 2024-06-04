@@ -26,6 +26,9 @@ services:
       - /var/cache:/hostfs/cache 
       - /usr/src:/hostfs/usr/src 
       - /lib/modules:/hostfs/lib/modules 
+      - /boot:/boot
+      - /snap:/snap
+      - /mnt:/mnt
     env_file:
       - path: .env
         required: true
