@@ -18,7 +18,6 @@ services:
     container_name: otel-hostmetrics
     image: otel/opentelemetry-collector-contrib:0.101.0
     volumes:
-      - "../../log:/var/log/otel"
       - "../../config/otel/otel-instance-config.yaml:/etc/otelcol-contrib/config.yaml"
       - /var/run/docker.sock:/var/run/docker.sock 
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
