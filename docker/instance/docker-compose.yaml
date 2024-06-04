@@ -29,12 +29,11 @@ services:
       - /boot:/boot
       - /snap:/snap
       - /mnt:/mnt
+      - /:/hostfs
+      - /proc:/hostfs/proc
     env_file:
       - path: .env
         required: true
-    network_mode: host
-    pid: host
-    privileged: true
   otel-kernel:
     container_name: otel-kernel
     image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2
