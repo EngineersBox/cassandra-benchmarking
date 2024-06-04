@@ -14,6 +14,13 @@ services:
       - 7199:7199
       - 9042:9042
       - 9160:9160
+  otel-hostmetrics:
+    container_name: otel-hostmetrics
+    image: otel/opentelemetry-collector:0.101.0
+    volumes:
+      - "../../log:/var/log"
+      - "../../config/otel/otel-instance-config.yaml:/etc/otelcol/config.yaml"
+    network_mode: host
   otel-kernel:
     container_name: otel-kernel
     image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2

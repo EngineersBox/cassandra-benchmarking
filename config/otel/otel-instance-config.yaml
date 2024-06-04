@@ -51,7 +51,7 @@ exporters:
   debug/metrics:
     verbosity: detailed
   file/metrics:
-    path: /var/log/otel/metrics.log
+    path: /var/log/otel/hostmetrics.log
 
 service:
   pipelines:
