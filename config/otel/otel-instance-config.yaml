@@ -118,6 +118,8 @@ processors:
 exporters:
   otlphttp:
     endpoint: http://<COLLECTOR>:4318
+  file/logs:
+    path: /var/log/otel/hostmetrics.log
 
 service:
   pipelines:
@@ -132,3 +134,5 @@ service:
       - resourcedetection
       exporters:
       - otlphttp
+      - logging
+      - file/logs
