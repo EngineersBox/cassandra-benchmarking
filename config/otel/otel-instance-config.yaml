@@ -11,7 +11,7 @@ receivers:
       network:
       paging:
   docker_stats:
-    endpoint: http://<HOST>:2375
+    endpoint: http://<DOCKER HOST>:2375
     api_version: 1.45
     metrics:
       container.memory.active_anon:
@@ -36,12 +36,83 @@ receivers:
         enabled: true
       container.pids.limit:
         enabled: true
+  prometheus:
+    config:
+      scrape_configs:
+      - docker_sd_configs:
+        - filters:
+          - name: label
+            values:
+            - prometheus.scrape=true
+          host: http://<DOCKER HOST>:2375
+        job_name: docker-containers
+        relabel_configs:
+        - action: replace
+          source_labels:
+          - __meta_docker_container_label_prometheus_path
+          target_label: __metrics_path__
+        - action: replace
+          regex: /(.*)
+          source_labels:
+          - __meta_docker_container_name
+          target_label: container_name
+        - action: replace
+          separator: ':'
+          source_labels:
+          - container_name
+          - __meta_docker_container_label_prometheus_port
+          target_label: __address__
+        - replacement: static.instance.name
+          source_labels:
+          - __address__
+          target_label: instance
+        - action: replace
+          source_labels:
+          - __meta_docker_container_id
+          target_label: container_id
+        - action: replace
+          source_labels:
+          - __meta_docker_container_id
+          target_label: service_instance_id
+        - action: replace
+          source_labels:
+          - __meta_docker_container_label_service_namespace
+          target_label: service_namespace
+        - action: replace
+          source_labels:
+          - container_name
+          target_label: service_name
+        - action: replace
+          source_labels:
+          - __meta_docker_container_label_deployment_environment
+          target_label: deployment_environment
+        - action: replace
+          regex: (.+/)?/?(.+)
+          replacement: $${1}$${2}
+          separator: /
+          source_labels:
+          - service_namespace
+          - service_name
+          target_label: job
+        scrape_interval: 30s
 
 processors:
   resourcedetection:
     detectors: ["env","system"]
     system:
       hostname_sources: ["os"]
+  transform/dockerstats:
+    metric_statements:
+    - context: datapoint
+      statements:
+      - set(attributes["container.id"], resource.attributes["container.id"])
+      - set(attributes["container.name"], resource.attributes["container.name"])
+      - set(attributes["container.hostname"], resource.attributes["container.hostname"])
+      - set(attributes["host.name"], resource.attributes["host.name"])
+      - set(attributes["compose.project"], resource.attributes["compose.project"])
+      - set(attributes["compose.service"], resource.attributes["compose.service"])
+      - set(attributes["deployment.environment"], resource.attributes["deployment.environment"])
+      - set(attributes["service.namespace"], resource.attributes["service.namespace"])
   batch:
 
 exporters:
@@ -54,7 +125,9 @@ service:
       receivers:
       - hostmetrics
       - docker_stats
+      - prometheus
       processors:
+      - transform/dockerstats
       - batch
       - resourcedetection
       exporters:
