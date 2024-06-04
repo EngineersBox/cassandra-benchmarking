@@ -45,13 +45,8 @@ processors:
   batch:
 
 exporters:
-  prometheusremotewrite:
-    endpoint: http://<COLLECTOR>:9090/api/v1/write
-    add_metric_suffixes: true
-  debug/metrics:
-    verbosity: detailed
-  file/metrics:
-    path: /var/log/otel/hostmetrics.log
+  otlp:
+    endpoint: http://<COLLECTOR>:4317
 
 service:
   pipelines:
@@ -63,5 +58,3 @@ service:
       - resourcedetection
       exporters:
       - prometheusremotewrite
-      - debug/metrics
-      - file/metrics
