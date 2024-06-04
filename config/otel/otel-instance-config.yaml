@@ -45,7 +45,7 @@ processors:
   batch:
 
 exporters:
-  otlp:
+  otlphttp:
     endpoint: http://<COLLECTOR>:4318
 
 service:
@@ -57,4 +57,4 @@ service:
       - batch
       - resourcedetection
       exporters:
-      - otlp
+      - otlphttp
