@@ -57,4 +57,4 @@ service:
       - batch
       - resourcedetection
       exporters:
-      - prometheusremotewrite
+      - otlp
