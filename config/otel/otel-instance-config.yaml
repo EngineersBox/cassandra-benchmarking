@@ -35,8 +35,6 @@ receivers:
         enabled: true
       container.pids.limit:
         enabled: true
-      container.command_line:
-        enabled: true
 
 processors:
   resourcedetection:
