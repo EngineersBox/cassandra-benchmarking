@@ -20,7 +20,18 @@ services:
     volumes:
       - "../../log:/var/log"
       - "../../config/otel/otel-instance-config.yaml:/etc/otelcol/config.yaml"
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
+      - /etc:/hostfs/etc 
+      - /var/cache:/hostfs/cache 
+      - /usr/src:/hostfs/usr/src 
+      - /lib/modules:/hostfs/lib/modules 
+    env_file:
+      - path: .env
+        required: true
     network_mode: host
+    pid: host
+    privileged: true
   otel-kernel:
     container_name: otel-kernel
     image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2

@@ -39,7 +39,7 @@ cat $ENV_FILE
 echo "[INFO] Starting Cassandra..."
 
 pushd docker/instance
-sudo docker compose up -d otel-kernel
-docker compose up -d cassandra otel-hostmetrics
+sudo docker compose up -d otel-kernel otel-hostmetrics
+docker compose up -d cassandra
 popd
 
