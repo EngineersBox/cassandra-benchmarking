@@ -53,6 +53,7 @@ service:
     metrics:
       receivers:
       - hostmetrics
+      - docker_stats
       processors:
       - batch
       - resourcedetection

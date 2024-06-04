@@ -33,6 +33,9 @@ services:
     env_file:
       - path: .env
         required: true
+    network_mode: host
+    pid: host
+    privileged: true
   otel-kernel:
     container_name: otel-kernel
     image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2
