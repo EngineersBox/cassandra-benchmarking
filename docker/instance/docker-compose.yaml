@@ -19,7 +19,6 @@ services:
     image: otel/opentelemetry-collector-contrib:0.101.0
     volumes:
       - "../../config/otel/otel-instance-config.yaml:/etc/otelcol-contrib/config.yaml"
-      - /<RUN PATH>/docker.sock:/var/run/docker.sock 
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
       - /etc:/hostfs/etc 
       - /var/cache:/hostfs/cache 
