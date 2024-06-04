@@ -46,7 +46,7 @@ processors:
 
 exporters:
   otlp:
-    endpoint: http://<COLLECTOR>:4317
+    endpoint: http://<COLLECTOR>:4318
 
 service:
   pipelines:
