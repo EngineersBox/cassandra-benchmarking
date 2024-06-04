@@ -1,0 +1,67 @@
+receivers:
+  hostmetrics:
+    collection_interval: 10s
+    scrapers:
+      cpu:
+      disk:
+      filesystem:
+      load:
+      memory:
+      network:
+      paging:
+dockerstats:
+  endpoint: <DOCKER HOST>
+  metrics:
+    container.memory.active_anon:
+      enabled: true
+    container.memory.inactive_anon:
+      enabled: true
+    container.memory.active_file:
+      enabled: true
+    container.memory.inactive_file:
+      enabled: true
+    container.memory.anon:
+      enabled: true
+    container.memory.fails:
+      enabled: true
+    container.memory.pgfault:
+      enabled: true
+    container.memory.pgmajfault:
+      enabled: true
+    container.memory.unevictable:
+      enabled: true
+    container.pids.count:
+      enabled: true
+    container.pids.limit:
+      enabled: true
+    container.command_line:
+      enabled: true
+
+processors:
+  resourcedetection:
+    detectors: ["env","system"]
+    system:
+      hostname_sources: ["os"]
+  batch:
+
+exporters:
+  prometheusremotewrite:
+    endpoint: http://<COLLECTOR>:9090/api/v1/write
+    add_metric_suffixes: true
+  debug/metrics:
+    verbosity: detailed
+  file/metrics:
+    path: /var/log/otel/metrics.log
+
+service:
+  pipelines:
+    metrics:
+      receivers:
+      - hostmetrics
+      processors:
+      - batch
+      - resourcedetection
+      exporters:
+      - prometheusremotewrite
+      - debug/metrics
+      - file/metrics
