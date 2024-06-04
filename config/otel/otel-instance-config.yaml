@@ -11,6 +11,7 @@ receivers:
       paging:
   docker_stats:
     endpoint: <DOCKER HOST>
+    api_version: 1.45
     metrics:
       container.memory.active_anon:
         enabled: true
