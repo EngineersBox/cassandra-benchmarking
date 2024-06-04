@@ -16,7 +16,7 @@ services:
       - 9160:9160
   otel-hostmetrics:
     container_name: otel-hostmetrics
-    image: otel/opentelemetry-collector:0.101.0
+    image: otel/opentelemetry-collector-contrib:0.101.0
     volumes:
       - "../../log:/var/log"
       - "../../config/otel/otel-instance-config.yaml:/etc/otelcol/config.yaml"
