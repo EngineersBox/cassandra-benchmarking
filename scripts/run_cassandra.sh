@@ -19,6 +19,10 @@ if [ ! -f "$ENV_FILE"  ]; then
     echo "[ERROR] Missing required env file: $ENV_FILE"
     exit 1
 fi
+if [ "$(grep -Ec '=<.*>' docker/instance/.env)" -ne 0 ]; then
+    echo "[ERROR] Env file contains missing values for templated properties: $ENV_FILE"
+    exit 1
+fi
 
 CLEAR_ALL="$1"
 if [ "${CLEAR_ALL,,}" = "y" ]; then

@@ -1,4 +1,5 @@
 # cassandra-benchmarking
+
 Cassandra Benchmarking Utilities
 
 ## Build
@@ -42,15 +43,22 @@ docker push ghcr.io/engineersbox/otel-collector:latest
 
 ### Configuration
 
-Ensure you set the addresses for the Cassandra instance and collector instances within the
-`config/otel/otel-collector.properties` and `config/otel/otel-instance.properties` config
-files.
-
-Choose any additional appropriate configurations for Cassandra within the `config/cassandra`
+1. Ensure you set the values of any templates within the following config files:
+    * `config/otel/otel-collector.properties`
+    * `config/otel/otel-collector-config.yaml`
+    * `config/otel/otel-instance.properties`
+    * `config/otel/otel-instance-config.yaml`
+    * `docker/instance/.env`
+2. Choose any additional appropriate configurations for Cassandra within the `config/cassandra`
 directory.
-
-This repo relies on the `vmprobe` utility, so make sure that is installed with your favourite
+3. This repo relies on the `vmprobe` utility, so make sure that is installed with your favourite
 package manager.
+4. Set up the desired keyspace and table mappings for metrics to be collected in `config/otel/jmx/jmx.groovy`
+in the last part of the `__instrumentCassandra()` function.
+5. Ensure you use the `scripts/apply_iptables_rules.sh` script to set up the required port access
+between servers if you are using a remote configuration.
+6. Configure the RMI server host in `config/cassandra/cassandra-env.sh` according to the isntructions in 
+the template parameter
 
 ### Casandra
 
@@ -59,7 +67,7 @@ denoting whether to remove all data and flush page cache. It can also be supplim
 additional arguments to the `docker run` command.
 
 ```bash
-sudo ./scripts/run_cassandra.sh <refresh: y|n> [...<docker args>]
+sudo ./scripts/run_cassandra.sh <refresh: y|n>
 ```
 
 ### OpenTelemetry Collector
@@ -67,7 +75,7 @@ sudo ./scripts/run_cassandra.sh <refresh: y|n> [...<docker args>]
 Similarly for the OTEL collector with:
 
 ```bash
-sudo ./scripts/run_otel.sh <refresh: y|n> [... <docker args>]
+sudo ./scripts/run_otel.sh <refresh: y|n>
 ```
 
 ## Remote Access
@@ -81,6 +89,12 @@ ssh -L <port>:localhost:<port> <remote instance>
 
 ## User Permissions
 
+Using a normal docker configuration (not rootless) is simple to set user permissions for. Make sure
+that any files and directories mounted into `cassandra` container are owned as `1000:1000` for the
+`uid:gid` bits.
+
+### Rootless Docker
+
 Assuming that you have the container user congiured as `1000:1000` and your user on the host mapped
 as `<user>:100000:65536` in both `/etc/subuid` and `/etc/subgid`, then you will need ensure that any
 directories/files mounted into the container used by the cassandra user are owned by `100999:100999`.
@@ -92,13 +106,6 @@ over anything you intend to mount into the Cassandra container:
 ```bash
 sudo chmod -R 100999:100999 <path>
 ```
-
-## Configuration
-
-* See the `start_cassandra.sh` script header for variables that can be set to customise the deployment.
-* Cassandra can be configured via the `cassandra.yaml` file, there is documentation within the file describing all avilable properties and their usage.
-* The OTEL agent can be configured via `otel.properties`, see <https://opentelemetry.io/docs/languages/java/automatic/configuration/> for details on valid properties.
-* OTEL collector can be configured via `otel-collector-config.yaml`.
 
 ## Collector
 

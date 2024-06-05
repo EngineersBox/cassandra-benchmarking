@@ -18,7 +18,7 @@ VERB="${4:-A}"
 
 USE_PERSISTENT_RULES=true
 if ! command -v netfilter-persistent &> /dev/null; then
-    echo "[IPTABLES] ERROR: iptables entries are emphemeral, 'netfilter-persistent' is used to ensure persistence, install the 'iptables-persistent' package to save rule changes"
+    echo "[NETFILTER] WARNING: iptables entries are emphemeral, 'netfilter-persistent' is used to ensure persistence, install the 'iptables-persistent' package to save rule changes"
     USE_PERSISTENT_RULES=false
 fi
 
@@ -30,5 +30,5 @@ echo "[IPTABLES] Created TCP output allowlist entry for port $SOURCE_PORT"
 
 if $USE_PERSISTENT_RULES; then
     netfilter-persistent save
-    echo "[IPTABLES] Saved rule changes"
+    echo "[NETFILTER] Saved rule changes"
 fi
