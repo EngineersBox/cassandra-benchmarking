@@ -33,6 +33,8 @@ processors:
     system:
       hostname_sources: ["os"]
   batch:
+    timeout: 1s
+    send_batch_size: 1024
 
 exporters:
   prometheusremotewrite:
@@ -70,7 +72,6 @@ service:
       receivers:
       - otlp
       - prometheus/collector
-      # - jmx
       processors:
       - batch
       - resourcedetection
