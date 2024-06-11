@@ -5,59 +5,6 @@
 
 def __instrumentCassandra() {
     def cassandraMetrics = "org.apache.cassandra.metrics"
-    def clientRequest = "${cassandraMetrics}:type=ClientRequest"
-    def clientRequestRangeSlice = "${clientRequest},scope=RangeSlice"
-
-    def clientRequestRangeSliceLatency = otel.mbean("${clientRequestRangeSlice},name=Latency")
-    otel.instrument(clientRequestRangeSliceLatency,
-            "cassandra.client.request.range_slice.latency.50p",
-            "Token range read request latency - 50th percentile", "us", "50thPercentile",
-            otel.&doubleValueCallback)
-
-    otel.instrument(clientRequestRangeSliceLatency,
-            "cassandra.client.request.range_slice.latency.99p",
-            "Token range read request latency - 99th percentile", "us", "99thPercentile",
-            otel.&doubleValueCallback)
-
-    otel.instrument(clientRequestRangeSliceLatency,
-            "cassandra.client.request.range_slice.latency.max",
-            "Maximum token range read request latency", "us", "Max",
-            otel.&doubleValueCallback)
-
-    def clientRequestRead = "${clientRequest},scope=Read"
-    def clientRequestReadLatency = otel.mbean("${clientRequestRead},name=Latency")
-    otel.instrument(clientRequestReadLatency,
-            "cassandra.client.request.read.latency.50p",
-            "Standard read request latency - 50th percentile", "us", "50thPercentile",
-            otel.&doubleValueCallback)
-
-    otel.instrument(clientRequestReadLatency,
-            "cassandra.client.request.read.latency.99p",
-            "Standard read request latency - 99th percentile", "us", "99thPercentile",
-            otel.&doubleValueCallback)
-
-    otel.instrument(clientRequestReadLatency,
-            "cassandra.client.request.read.latency.max",
-            "Maximum standard read request latency", "us", "Max",
-            otel.&doubleValueCallback)
-
-    def clientRequestWrite = "${clientRequest},scope=Write"
-    def clientRequestWriteLatency = otel.mbean("${clientRequestWrite},name=Latency")
-    otel.instrument(clientRequestWriteLatency,
-            "cassandra.client.request.write.latency.50p",
-            "Regular write request latency - 50th percentile", "us", "50thPercentile",
-            otel.&doubleValueCallback)
-
-    otel.instrument(clientRequestWriteLatency,
-            "cassandra.client.request.write.latency.99p",
-            "Regular write request latency - 99th percentile", "us", "99thPercentile",
-            otel.&doubleValueCallback)
-
-    otel.instrument(clientRequestWriteLatency,
-            "cassandra.client.request.write.latency.max",
-            "Maximum regular write request latency", "us", "Max",
-            otel.&doubleValueCallback)
-
     def storage = "${cassandraMetrics}:type=Storage"
     def storageLoad = otel.mbean("${storage},name=Load")
     otel.instrument(storageLoad,
@@ -91,61 +38,9 @@ def __instrumentCassandra() {
             "Number of completed compactions since server [re]start", "1", "Value",
             otel.&longCounterCallback)
 
-
-    def clientRequests = otel.mbeans([
-      "${clientRequestRangeSlice},name=Latency",
-      "${clientRequestRead},name=Latency",
-      "${clientRequestWrite},name=Latency",
-    ])
-
-    otel.instrument(clientRequests,
-      "cassandra.client.request.count",
-      "Number of requests by operation",
-      "1",
-      [
-        "operation" : { mbean -> mbean.name().getKeyProperty("scope") },
-      ],
-      "Count", otel.&longCounterCallback)
-
-    def clientRequestErrors = otel.mbeans([
-      "${clientRequestRangeSlice},name=Unavailables",
-      "${clientRequestRangeSlice},name=Timeouts",
-      "${clientRequestRangeSlice},name=Failures",
-      "${clientRequestRead},name=Unavailables",
-      "${clientRequestRead},name=Timeouts",
-      "${clientRequestRead},name=Failures",
-      "${clientRequestWrite},name=Unavailables",
-      "${clientRequestWrite},name=Timeouts",
-      "${clientRequestWrite},name=Failures",
-    ])
-
-    otel.instrument(clientRequestErrors,
-      "cassandra.client.request.error.count",
-      "Number of request errors by operation",
-      "1",
-      [
-        "operation" : { mbean -> mbean.name().getKeyProperty("scope") },
-        "status" : {
-          mbean -> switch(mbean.name().getKeyProperty("name")) {
-            case "Unavailables":
-              return "Unavailable"
-              break
-            case "Timeouts":
-              return "Timeout"
-              break
-            case "Failures":
-              return "Failure"
-              break
-          }
-        }
-      ],
-      "Count",
-        otel.&longCounterCallback
-    )
-
     // Mapping of keyspace to table
     def scopes = [
-        "ycsb": "usertable"
+        "*": "*"
     ]
     def serializerMetrics = [
         "Cell",
@@ -174,10 +69,8 @@ def __instrumentCassandra() {
         "99thPercentile": otel.&doubleCounterCallback,
         "999thPercentile": otel.&doubleCounterCallback,
         "Count": otel.&longCounterCallback,
-        "OneMinuteRate": otel.&doubleCounterCallback,
         "FifteenMinuteRate": otel.&doubleCounterCallback,
         "FiveMinuteRate": otel.&doubleCounterCallback,
-        "OneMinuteRate": otel.&doubleCounterCallback,
         "OneMinuteRate": otel.&doubleCounterCallback,
         "Max": otel.&doubleCounterCallback,
         "Mean": otel.&doubleCounterCallback,
@@ -196,10 +89,12 @@ def __instrumentCassandra() {
                     )
                     otel.instrument(
                         serializer,
-                        "cassandra.serializer.${prefix.toLowerCase()}.${metric.toLowerCase()}.${attribute.toLowerCase()}",
-                        "${prefix} ${metric} Serializer ${attribute}",
+                        "cassandra.serializer.${attribute.toLowerCase()}",
+                        "Serializer ${attribute}",
                         "1",
                         [
+                            "name": { mbean -> prefix },
+                            "metric": { mbean -> metric },
                             "type": { mbean -> mbean.name().getKeyProperty("type") },
                             "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
                             "scope": { mbean -> mbean.name().getKeyProperty("scope") },
@@ -210,6 +105,122 @@ def __instrumentCassandra() {
                 }
             }
         }
+    }
+
+    def meterAttributes = [
+        "Count": otel.&longCounterCallback,
+        "FifteenMinuteRate": otel.&doubleCounterCallback,
+        "FiveMinuteRate": otel.&doubleCounterCallback,
+        "OneMinuteRate": otel.&doubleCounterCallback,
+        "MeanRate": otel.&doubleCounterCallback,
+    ]
+    def guageAttributes = [
+      "Value": otel.&longCounterCallback
+    ]
+    def cacheMappings = [
+      "BufferPool": [
+        "scopes": [
+          "chunk-cache",
+          "networking"
+        ],
+        "metrics": [
+          "Hits": meterAttributes,
+          "Misses": meterAttributes,
+          "Capacity": guageAttributes,
+          "Size": guageAttributes,
+          "UsedSize": guageAttributes
+        ]
+      ],
+      "Cache": [
+        "scopes": [
+          "KeyCache",
+          "RowCache",
+          "CounterCache"
+        ],
+        "metrics": [
+          "Hits": meterAttributes,
+          "Misses": meterAttributes,
+          "Capacity": guageAttributes,
+          "Entries": guageAttributes,
+          "Size": guageAttributes
+        ]
+      ]
+    ]
+    cacheMappings.each { type, mappings ->
+      mappings["scopes"].each { scope ->
+        mappings["metrics"].each { metric, attributes ->
+          def bean = otel.mbean("org.apache.cassandra.metrics:name=${metric},scope=${scope},type=${type}")
+          attributes.each { attribute, func ->
+            otel.instrument(
+              bean,
+              "cassandra.${type.toLowerCase()}.${attribute}",
+              type,
+              "1",
+              [
+                  "metric": { mbean -> metric },
+                  "scope": { mbean -> mbean.name().getKeyProperty("scope") },
+              ],
+              [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
+              func
+            )
+          }
+        }
+      }
+    }
+    
+    def clientRequestBeans = otel.mbeans("org.apache.cassandra.metrics:type=ClientRequest,*")  
+    clientRequestBeans.each { bean ->
+      println("==== [MBEANS] ====\n")
+      println(bean.getMBeans())
+      def _mbean = bean.getMBeans()[0]
+      def propertyName = _mbean.name().getKeyProperty("name")
+      def propertyScope = _mbean.name().getKeyProperty("scope")
+      if (propertyScope == "CASWrite" || propertyScope == "CASRead") {
+        meterAttributes.each{ attribute, func ->
+          otel.instrument(
+            bean,
+            "cassandra.client_request.${attribute}",
+            "Client Request ${attribute}",
+            "1",
+            [
+              "scope": { mbean -> propertyScope },
+              "name": { mbean -> propertyName }
+            ],
+            [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
+            func
+          )
+        }
+        return
+      }
+      otel.instrument(
+        bean,
+        "cassandra.client_request.count",
+        "Client Request Count",
+        "1",
+        [
+          "scope": { mbean -> propertyScope },
+          "name": { mbean -> propertyName }
+        ],
+        [ "Count": [ "Count": "Count" ] ],
+        otel.&longValueCallback
+      )
+    }
+
+    def threadPoolBeans = otel.mbeans("org.apache.cassandra.metrics:type=ThreadPools,*")
+    threadPoolBeans.each { bean ->
+      otel.instrument(
+        bean,
+        "cassandra.thread_pool",
+        "Thread Pool",
+        "1",
+        [
+          "name": { mbean -> mbean.name().getKeyProperty("name") },
+          "scope": { mbean -> mbean.name().getKeyProperty("scope") },
+          "path": { mbean -> mbean.name().getKeyProperty("path") },
+        ],
+        "Count",
+        otel.&longValueCallback
+      )
     }
 }
 
