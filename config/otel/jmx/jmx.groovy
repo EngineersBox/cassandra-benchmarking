@@ -1,9 +1,11 @@
+import groovy.jmx.GroovyMBean
+
 /* =============================
  *          CASSANDRA
  * =============================
  */
 
-def __instrumentCassandra() {
+def old__instrumentCassandra() {
     def cassandraMetrics = "org.apache.cassandra.metrics"
     def storage = "${cassandraMetrics}:type=Storage"
     def storageLoad = otel.mbean("${storage},name=Load")
@@ -222,6 +224,63 @@ def __instrumentCassandra() {
         otel.&longValueCallback
       )
     }
+}
+
+def camelToSnake(String str) {
+  def regex = "([a-z])([A-Z]+)";
+  def replacement = "\$1_\$2";
+  return str.replaceAll(regex, replacement).toLowerCase();
+}
+
+def instrumentMBean(GroovyMBean bean) {
+  def nameMappings = [
+    "org.apache.cassandra.metrics": "cassandra"
+  ]
+  def callbackMappings = [
+    "double": otel.&doubleCounterCallback,
+    "long": otel.&doubleCounterCallback,
+    // "[D": otel.&doubleHistogram,
+    // "[J": otel.&doubleHistogram,
+    "java.lang.Object": otel.&longCounterCallback
+  ]
+  def beanInfo = bean.info()
+  def attributes = bean.listAttributeNames()
+  def beanName = bean.name()
+  def domain = beanName.getDomain()
+  def propertyType = beanName.getKeyProperty("type")
+  def propertyName = beanName.getKeyProperty("name")
+  def labelMappings = beanName.getKeyPropertyList()
+    .dropWhile({ k,v -> k == "type" || k == "name" })
+    .collectEntries({ k,v -> [(k): { ignored -> v }] })
+  beanInfo.getAttributes().each({ attribute ->
+    def callback = callbackMappings[attribute.getType()]
+    if (callback == null) {
+      return
+    }
+    System.err.println("Bean name: ${beanName}")
+    otel.instrument(
+      otel.mbean(beanName.toString()),
+      camelToSnake("${nameMappings[domain]}.${propertyType}.${propertyName}"),
+      "${propertyType} ${propertyName}",
+      "1",
+      labelMappings,
+      attribute.getName(),
+      callback
+    )
+  })
+}
+
+def instrumentMBeans(String objectName) {
+  def mbeans = otel.queryJmx(objectName)
+  mbeans.each({ mbean -> 
+    instrumentMBean(mbean)
+  })
+}
+
+def __instrumentCassandra() {
+  instrumentMBeans("org.apache.cassandra.metrics:type=Cache,*")
+  instrumentMBeans("org.apache.cassandra.metrics:type=BufferPool,*")
+  instrumentMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*")
 }
 
 /* =============================
