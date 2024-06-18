@@ -12,23 +12,26 @@ class Cache {
 
   @EqualsAndHashCode
   static class Key {
-      def domain;
-      def name;
-      def type;
-      def labels // List of string names
-      def metricClass; // JmxGauge, JmxTimer, etc
+      String domain;
+      String name;
+      String type;
+      Set<String> labels;
+      String metricClass; // JmxGauge, JmxTimer, etc
 
       String toIndentedString(final String indent) {
         String labelNames = this.labels.collect({
             label -> "${indent}    ${label}"
         }).join(",\n")
+        String labelsFormat = this.labels.isEmpty()
+            ? "${indent}  Labels: [],"
+            : """${indent}  Labels: [
+${labelNames}
+${indent}  ]"""
         return """${indent}Key: {
 ${indent}  Domain: ${this.domain},
 ${indent}  Name: ${this.name},
 ${indent}  Type: ${this.type},
-${indent}  Labels: [
-${labelNames}
-${indent}  ],
+${labelsFormat}
 ${indent}  Metric Class: ${this.metricClass}
 ${indent}}""";
       }
@@ -36,25 +39,28 @@ ${indent}}""";
 
   @EqualsAndHashCode
   static class Attribute {
-      def name;
-      def desc;
-      def unit;
-      def labelMappings; // Map of String to Closure
-      def callbackType;
-      def callback;
+      String name;
+      String desc;
+      String unit;
+      Map<String, Closure> labelMappings; // Map of String to Closure
+      String callbackType;
+      Closure callback;
 
       String toIndentedString(final String indent) {
         String lindent = "${indent}    ";
         String labels = this.labelMappings.collect({
             label, closure -> "${lindent}${label}"
         }).join(",\n");
-        return """${indent}Attribute: {
+        String labelsFormat = this.labelMappings.isEmpty()
+            ? "${indent}  Labels: [],"
+            : """${indent}  Labels: [
+${labels}
+${indent}  ]"""
+        return """{
 ${indent}  Name: ${this.name},
 ${indent}  Desc: ${this.desc},
 ${indent}  Unit: ${this.unit},
-${indent}  Labels: [
-${labels}
-${indent}  ],
+${labelsFormat}
 ${indent}  Callback Type: ${this.callbackType}
 ${indent}}""";
       }
@@ -72,7 +78,7 @@ ${indent}}""";
           }).join(",\n");
           String aindent = "${indent}    ";
           String attributesString = this.attributes.collect({
-              name, attribute -> "${aindent}Name: ${name},\n${attribute.toIndentedString(aindent)}"
+              name, attribute -> "${aindent}${name}: ${attribute.toIndentedString(aindent)}"
           }).join(",\n");
           return """${indent}Entry: {
 ${indent}  Object Names: [
@@ -104,13 +110,13 @@ class ConditionalAttributes {
     Set<String> falseExclusionAttributes;
 }
 
-def camelToSnake(String str) {
+def camelToSnake(final String str) {
   def regex = "([a-z])([A-Z]+)";
   def replacement = "\$1_\$2";
   return str.replaceAll(regex, replacement).toLowerCase();
 }
 
-def resolveGaugeValueType(GroovyMBean bean) {
+def resolveGaugeValueType(final GroovyMBean bean) {
   def value = bean.getProperty("Value")
   def clazz = value.getClass()
   def typeName = clazz.getName().replace(
@@ -120,22 +126,27 @@ def resolveGaugeValueType(GroovyMBean bean) {
   return "${Character.toLowerCase(typeName.charAt(0))}${typeName.substring(1)}"
 }
 
-def enforceNaming(def str) {
+def enforceNaming(final String str) {
     return str == null ? "" : "." + str.replaceAll("\s", "_")
         .replaceAll("[^a-zA-Z0-9_]+", "_")
 }
 
-def constructName(def domain, def propertyType, def propertyName, def attributeName) {
+def constructName(final String domain,
+                  final String propertyType,
+                  final String propertyName,
+                  final String attributeName) {
   def formattedPropertyType = enforceNaming(propertyType)
   def formattedPropertyName = enforceNaming(propertyName)
   return "${domain}${formattedPropertyType}${formattedPropertyName}.${attributeName}"
 }
 
-def formatDescSection(def section) {
+def formatDescSection(final String section) {
   return section == null ? "" : "${section} "
 }
 
-def cacheMBean(GroovyMBean bean, def nameMappings, final Map<String, ConditionalAttributes> conditionalAttributes) {
+def cacheMBean(final GroovyMBean bean,
+               final Map<String, String> nameMappings,
+               final Map<String, ConditionalAttributes> conditionalAttributes) {
   def callbackMappings = [
     "double": otel.&doubleValueCallback,
     "long": otel.&doubleValueCallback,
@@ -148,11 +159,11 @@ def cacheMBean(GroovyMBean bean, def nameMappings, final Map<String, Conditional
   def attributes = bean.listAttributeNames()
   def beanName = bean.name()
   def metricClassSplit = beanInfo.getClassName().tokenize('$')
-  def metricClass = metricClassSplit.last()
-  def isGauge = metricClass == "JmxGauge"
-  def domain = beanName.getDomain()
-  def propertyType = beanName.getKeyProperty("type")
-  def propertyName = beanName.getKeyProperty("name")
+  final String metricClass = metricClassSplit.last()
+  final boolean isGauge = metricClass == "JmxGauge"
+  final String domain = beanName.getDomain()
+  final String propertyType = beanName.getKeyProperty("type")
+  final String propertyName = beanName.getKeyProperty("name")
   def labelMappings = beanName.getKeyPropertyList()
     .findAll({ k,v -> k != "type" && k != "name" })
     .collectEntries({ k,v -> [(k): { mbean -> mbean.name().getKeyProperty(k) }] })
@@ -174,29 +185,16 @@ def cacheMBean(GroovyMBean bean, def nameMappings, final Map<String, Conditional
           .findAll({ attribute -> !conditionalAttributes.containsKey(attribute.getName()) })
   conditionalAttributes?.each({
       cond, attrs ->
-      System.err.println("Condition attribute: ${cond} => ${bean.getProperty(cond).getClass()}: ${bean.getProperty(cond)}");
-      final boolean enabled = bean.getProperty(cond)
-      if (enabled) {
-          System.err.println("Running true exclusions: ${attrs.trueExclusionAttributes}");
+      if (bean.getProperty(cond)) {
           beanAttributes = beanAttributes.findAll({ beanAttribute ->
-              String attrName = beanAttribute.getName()
-              boolean state = !attrs.trueExclusionAttributes.contains(attrName)
-              System.err.println("Attribute: ${attrName} => ${state}");
-              return state;
+              return !attrs.trueExclusionAttributes.contains(beanAttribute.getName())
           })
       } else {
-          System.err.println("Running false exclusions: ${attrs.falseExclusionAttributes}");
           beanAttributes = beanAttributes.findAll({ beanAttribute ->
-              String attrName = beanAttribute.getName()
-              boolean state = !attrs.falseExclusionAttributes.contains(attrName)
-              System.err.println("Attribute: ${attrName} -> ${state}")
-              return state
+              return !attrs.falseExclusionAttributes.contains(beanAttribute.getName())
           })
       }
   })
-  if (conditionalAttributes != null) {
-      System.err.println(beanAttributes.collect({ attr -> attr.getName() }))
-  }
   beanAttributes.each({ attribute ->
     def mappingLookupKey = isGauge || attribute?.getType() == "java.lang.Object"
         ? resolveGaugeValueType(bean)
