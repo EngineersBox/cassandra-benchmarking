@@ -268,16 +268,17 @@ def instrumentMBeans() {
  */
 
 def cacheCassandraMBeans() {
-  if (!Cache.initialised) {
-      def nameMappings = [
-          "org.apache.cassandra.metrics": "cassandra"
-      ]
-      cacheMBeans("org.apache.cassandra.metrics:type=Cache,*", nameMappings)
-      cacheMBeans("org.apache.cassandra.metrics:type=BufferPool,*", nameMappings)
-      cacheMBeans("org.apache.cassandra.metrics:type=ThreadPools,*", nameMappings)
-      cacheMBeans("org.apache.cassandra.metrics:type=StorageProxy,*", nameMappings)
-      cacheMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*", nameMappings)
+  if (Cache.initialised) {
+      return
   }
+  def nameMappings = [
+      "org.apache.cassandra.metrics": "cassandra"
+  ]
+  cacheMBeans("org.apache.cassandra.metrics:type=Cache,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics:type=BufferPool,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics:type=ThreadPools,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics:type=StorageProxy,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*", nameMappings)
 }
 
 /* =============================
@@ -286,34 +287,35 @@ def cacheCassandraMBeans() {
  */
 
 def cacheJVMMBeans() {
-    if (!Cache.initialised) {
-        def nameMappings = [
-            "java.lang": "jvm"
-        ]
-        def conditions = [
-            (new ObjectName("java.lang:type=MemoryPool,*")): [
-                "CollectionUsageThresholdSupported": new ConditionalAttributes(
-                    trueExclusionAttributes: [],
-                    falseExclusionAttributes: [
-                        "CollectionUsage",
-                        "CollectionUsageThreshold",
-                        "CollectionUsageThresholdCount",
-                        "CollectionUsageThresholdExceeded"
-                    ]
-                ),
-                "UsageThresholdSupported": new ConditionalAttributes(
-                    trueExclusionAttributes: [],
-                    falseExclusionAttributes: [
-                        "Usage",
-                        "UsageThreshold",
-                        "UsageThresholdCount",
-                        "UsageThresholdExceeded"
-                    ]
-                )
-            ]
-        ]
-        cacheMBeans("java.lang:*", nameMappings, [], conditions)
+    if (Cache.initialised) {
+        return
     }
+    def nameMappings = [
+        "java.lang": "jvm"
+    ]
+    def conditions = [
+        (new ObjectName("java.lang:type=MemoryPool,*")): [
+            "CollectionUsageThresholdSupported": new ConditionalAttributes(
+                trueExclusionAttributes: [],
+                falseExclusionAttributes: [
+                    "CollectionUsage",
+                    "CollectionUsageThreshold",
+                    "CollectionUsageThresholdCount",
+                    "CollectionUsageThresholdExceeded"
+                ]
+            ),
+            "UsageThresholdSupported": new ConditionalAttributes(
+                trueExclusionAttributes: [],
+                falseExclusionAttributes: [
+                    "Usage",
+                    "UsageThreshold",
+                    "UsageThresholdCount",
+                    "UsageThresholdExceeded"
+                ]
+            )
+        ]
+    ]
+    cacheMBeans("java.lang:*", nameMappings, [], conditions)
 }
 
 /* =============================
