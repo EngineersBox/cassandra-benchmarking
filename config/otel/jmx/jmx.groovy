@@ -1,229 +1,107 @@
 import groovy.jmx.GroovyMBean
+import groovy.transform.EqualsAndHashCode
+import javax.management.ObjectName
+import java.util.ArrayList
 
 /* =============================
- *          CASSANDRA
+ *     AUTO-INSTRUMENTATION
  * =============================
  */
 
-def old__instrumentCassandra() {
-    def cassandraMetrics = "org.apache.cassandra.metrics"
-    def storage = "${cassandraMetrics}:type=Storage"
-    def storageLoad = otel.mbean("${storage},name=Load")
-    otel.instrument(storageLoad,
-            "cassandra.storage.load.count",
-            "Size of the on disk data size this node manages", "by", "Count",
-            otel.&longUpDownCounterCallback)
+class Cache {
 
-    def storageTotalHints = otel.mbean("${storage},name=TotalHints")
-    otel.instrument(storageTotalHints,
-            "cassandra.storage.total_hints.count",
-            "Number of hint messages written to this node since [re]start", "1", "Count",
-            otel.&longCounterCallback)
+  @EqualsAndHashCode
+  static class Key {
+      def domain;
+      def name;
+      def type;
+      def labels // List of string names
+      def metricClass; // JmxGauge, JmxTimer, etc
 
-    def storageTotalHintsInProgress = otel.mbean("${storage},name=TotalHintsInProgress")
-    otel.instrument(storageTotalHintsInProgress,
-            "cassandra.storage.total_hints.in_progress.count",
-            "Number of hints attempting to be sent currently", "1", "Count",
-            otel.&longUpDownCounterCallback)
-
-
-    def compaction = "${cassandraMetrics}:type=Compaction"
-    def compactionPendingTasks = otel.mbean("${compaction},name=PendingTasks")
-    otel.instrument(compactionPendingTasks,
-            "cassandra.compaction.tasks.pending",
-            "Estimated number of compactions remaining to perform", "1", "Value",
-            otel.&longValueCallback)
-
-    def compactionCompletedTasks = otel.mbean("${compaction},name=CompletedTasks")
-    otel.instrument(compactionCompletedTasks,
-            "cassandra.compaction.tasks.completed",
-            "Number of completed compactions since server [re]start", "1", "Value",
-            otel.&longCounterCallback)
-
-    // Mapping of keyspace to table
-    def scopes = [
-        "*": "*"
-    ]
-    def serializerMetrics = [
-        "Cell",
-        "Cfs",
-        "ClusteringKey",
-        "Column",
-        "AllColumns",
-        "ColumnSubset",
-        "IndexEntry",
-        "RangeTombstoneMarker",
-        "RowBody",
-        "Row",
-        "Partition"
-    ]
-    def serializerTypePrefixes = [
-        "Partition",
-        "Index",
-        "Data",
-        "SSTableWriter"
-    ]
-    def serializerMBeanAttributes = [
-        "50thPercentile": otel.&doubleCounterCallback,
-        "75thPercentile": otel.&doubleCounterCallback,
-        "95thPercentile": otel.&doubleCounterCallback,
-        "98thPercentile": otel.&doubleCounterCallback,
-        "99thPercentile": otel.&doubleCounterCallback,
-        "999thPercentile": otel.&doubleCounterCallback,
-        "Count": otel.&longCounterCallback,
-        "FifteenMinuteRate": otel.&doubleCounterCallback,
-        "FiveMinuteRate": otel.&doubleCounterCallback,
-        "OneMinuteRate": otel.&doubleCounterCallback,
-        "Max": otel.&doubleCounterCallback,
-        "Mean": otel.&doubleCounterCallback,
-        "MeanRate": otel.&doubleCounterCallback,
-        "Min": otel.&doubleCounterCallback,
-        // "RecentValues": otel.&longHistogram, // TODO: Check whether this works
-        "StdDev": otel.&doubleCounterCallback,
-    ]
-    serializerTypePrefixes.each { prefix ->
-        serializerMetrics.each { metric ->
-            serializerMBeanAttributes.each { attribute, func ->
-                scopes.each { keyspace, table ->
-                    def name = "${prefix}${metric}"
-                    def serializer = otel.mbeans(
-                        "org.apache.cassandra.metrics:name=${name}SerializerRate,keyspace=${keyspace},scope=${table},*",
-                    )
-                    otel.instrument(
-                        serializer,
-                        "cassandra.serializer.${attribute.toLowerCase()}",
-                        "Serializer ${attribute}",
-                        "1",
-                        [
-                            "name": { mbean -> prefix },
-                            "metric": { mbean -> metric },
-                            "type": { mbean -> mbean.name().getKeyProperty("type") },
-                            "keyspace": { mbean -> mbean.name().getKeyProperty("keyspace") },
-                            "scope": { mbean -> mbean.name().getKeyProperty("scope") },
-                        ],
-                        [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
-                        func
-                    )
-                }
-            }
-        }
-    }
-
-    def meterAttributes = [
-        "Count": otel.&longCounterCallback,
-        "FifteenMinuteRate": otel.&doubleCounterCallback,
-        "FiveMinuteRate": otel.&doubleCounterCallback,
-        "OneMinuteRate": otel.&doubleCounterCallback,
-        "MeanRate": otel.&doubleCounterCallback,
-    ]
-    def guageAttributes = [
-      "Value": otel.&longCounterCallback
-    ]
-    def cacheMappings = [
-      "BufferPool": [
-        "scopes": [
-          "chunk-cache",
-          "networking"
-        ],
-        "metrics": [
-          "Hits": meterAttributes,
-          "Misses": meterAttributes,
-          "Capacity": guageAttributes,
-          "Size": guageAttributes,
-          "UsedSize": guageAttributes
-        ]
-      ],
-      "Cache": [
-        "scopes": [
-          "KeyCache",
-          "RowCache",
-          "CounterCache"
-        ],
-        "metrics": [
-          "Hits": meterAttributes,
-          "Misses": meterAttributes,
-          "Capacity": guageAttributes,
-          "Entries": guageAttributes,
-          "Size": guageAttributes
-        ]
-      ]
-    ]
-    cacheMappings.each { type, mappings ->
-      mappings["scopes"].each { scope ->
-        mappings["metrics"].each { metric, attributes ->
-          def bean = otel.mbean("org.apache.cassandra.metrics:name=${metric},scope=${scope},type=${type}")
-          attributes.each { attribute, func ->
-            otel.instrument(
-              bean,
-              "cassandra.${type.toLowerCase()}.${attribute}",
-              type,
-              "1",
-              [
-                  "metric": { mbean -> metric },
-                  "scope": { mbean -> mbean.name().getKeyProperty("scope") },
-              ],
-              [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
-              func
-            )
-          }
-        }
+      String toIndentedString(final String indent) {
+        String labelNames = this.labels.collect({
+            label -> "${indent}    ${label}"
+        }).join(",\n")
+        return """${indent}Key: {
+${indent}  Domain: ${this.domain},
+${indent}  Name: ${this.name},
+${indent}  Type: ${this.type},
+${indent}  Labels: [
+${labelNames}
+${indent}  ],
+${indent}  Metric Class: ${this.metricClass}
+${indent}}""";
       }
-    }
+  }
+
+  @EqualsAndHashCode
+  static class Attribute {
+      def name;
+      def desc;
+      def unit;
+      def labelMappings; // Map of String to Closure
+      def callbackType;
+      def callback;
+
+      String toIndentedString(final String indent) {
+        String lindent = "${indent}    ";
+        String labels = this.labelMappings.collect({
+            label, closure -> "${lindent}${label}"
+        }).join(",\n");
+        return """${indent}Attribute: {
+${indent}  Name: ${this.name},
+${indent}  Desc: ${this.desc},
+${indent}  Unit: ${this.unit},
+${indent}  Labels: [
+${labels}
+${indent}  ],
+${indent}  Callback Type: ${this.callbackType}
+${indent}}""";
+      }
+
+  }
+
+  @EqualsAndHashCode
+  static class Entry {
+      Set<String> objectNames;
+      Map<String, Cache.Attribute> attributes
     
-    def clientRequestBeans = otel.mbeans("org.apache.cassandra.metrics:type=ClientRequest,*")  
-    clientRequestBeans.each { bean ->
-      println("==== [MBEANS] ====\n")
-      println(bean.getMBeans())
-      def _mbean = bean.getMBeans()[0]
-      def propertyName = _mbean.name().getKeyProperty("name")
-      def propertyScope = _mbean.name().getKeyProperty("scope")
-      if (propertyScope == "CASWrite" || propertyScope == "CASRead") {
-        meterAttributes.each{ attribute, func ->
-          otel.instrument(
-            bean,
-            "cassandra.client_request.${attribute}",
-            "Client Request ${attribute}",
-            "1",
-            [
-              "scope": { mbean -> propertyScope },
-              "name": { mbean -> propertyName }
-            ],
-            [ "${attribute}": [ "${attribute}": "${attribute}" ] ],
-            func
-          )
-        }
-        return
+      String toIndentedString(final String indent) {
+          String objectNamesString = this.objectNames.collect({
+              on -> "${indent}    ${on}"
+          }).join(",\n");
+          String aindent = "${indent}    ";
+          String attributesString = this.attributes.collect({
+              name, attribute -> "${aindent}Name: ${name},\n${attribute.toIndentedString(aindent)}"
+          }).join(",\n");
+          return """${indent}Entry: {
+${indent}  Object Names: [
+${objectNamesString}
+${indent}  ],
+${indent}  Attributes: {
+${attributesString}
+${indent}  }
+${indent}}""";
       }
-      otel.instrument(
-        bean,
-        "cassandra.client_request.count",
-        "Client Request Count",
-        "1",
-        [
-          "scope": { mbean -> propertyScope },
-          "name": { mbean -> propertyName }
-        ],
-        [ "Count": [ "Count": "Count" ] ],
-        otel.&longValueCallback
-      )
-    }
+  }
 
-    def threadPoolBeans = otel.mbeans("org.apache.cassandra.metrics:type=ThreadPools,*")
-    threadPoolBeans.each { bean ->
-      otel.instrument(
-        bean,
-        "cassandra.thread_pool",
-        "Thread Pool",
-        "1",
-        [
-          "name": { mbean -> mbean.name().getKeyProperty("name") },
-          "scope": { mbean -> mbean.name().getKeyProperty("scope") },
-          "path": { mbean -> mbean.name().getKeyProperty("path") },
-        ],
-        "Count",
-        otel.&longValueCallback
-      )
-    }
+  static boolean initialised = false
+  static Map<Cache.Key, Cache.Entry> mbeanMappings = [:]
+
+  static def printCache() {
+      Cache.mbeanMappings.each({ key, entry ->
+          System.err.println("""{
+${key.toIndentedString("  ")}
+${entry.toIndentedString("  ")}
+}""");
+      })
+  }
+}
+
+@EqualsAndHashCode
+class ConditionalAttributes {
+    Set<String> trueExclusionAttributes;
+    Set<String> falseExclusionAttributes;
 }
 
 def camelToSnake(String str) {
@@ -232,55 +110,174 @@ def camelToSnake(String str) {
   return str.replaceAll(regex, replacement).toLowerCase();
 }
 
-def instrumentMBean(GroovyMBean bean) {
-  def nameMappings = [
-    "org.apache.cassandra.metrics": "cassandra"
-  ]
+def resolveGaugeValueType(GroovyMBean bean) {
+  def value = bean.getProperty("Value")
+  def clazz = value.getClass()
+  def typeName = clazz.getName().replace(
+    "${clazz.getPackageName()}.",
+    ""
+  )
+  return "${Character.toLowerCase(typeName.charAt(0))}${typeName.substring(1)}"
+}
+
+def enforceNaming(def str) {
+    return str == null ? "" : "." + str.replaceAll("\s", "_")
+        .replaceAll("[^a-zA-Z0-9_]+", "_")
+}
+
+def constructName(def domain, def propertyType, def propertyName, def attributeName) {
+  def formattedPropertyType = enforceNaming(propertyType)
+  def formattedPropertyName = enforceNaming(propertyName)
+  return "${domain}${formattedPropertyType}${formattedPropertyName}.${attributeName}"
+}
+
+def formatDescSection(def section) {
+  return section == null ? "" : "${section} "
+}
+
+def cacheMBean(GroovyMBean bean, def nameMappings, final Map<String, ConditionalAttributes> conditionalAttributes) {
   def callbackMappings = [
-    "double": otel.&doubleCounterCallback,
-    "long": otel.&doubleCounterCallback,
+    "double": otel.&doubleValueCallback,
+    "long": otel.&doubleValueCallback,
+    "integer": otel.&doubleValueCallback,
     // "[D": otel.&doubleHistogram,
-    // "[J": otel.&doubleHistogram,
-    "java.lang.Object": otel.&longCounterCallback
+    // "[J": otel.&longHistogram,
+    // "java.lang.Object": otel.&longCounterCallback
   ]
   def beanInfo = bean.info()
   def attributes = bean.listAttributeNames()
   def beanName = bean.name()
+  def metricClassSplit = beanInfo.getClassName().tokenize('$')
+  def metricClass = metricClassSplit.last()
+  def isGauge = metricClass == "JmxGauge"
   def domain = beanName.getDomain()
   def propertyType = beanName.getKeyProperty("type")
   def propertyName = beanName.getKeyProperty("name")
   def labelMappings = beanName.getKeyPropertyList()
-    .dropWhile({ k,v -> k == "type" || k == "name" })
-    .collectEntries({ k,v -> [(k): { ignored -> v }] })
-  beanInfo.getAttributes().each({ attribute ->
-    def callback = callbackMappings[attribute.getType()]
+    .findAll({ k,v -> k != "type" && k != "name" })
+    .collectEntries({ k,v -> [(k): { mbean -> mbean.name().getKeyProperty(k) }] })
+  final Cache.Key key = new Cache.Key(
+      domain: domain,
+      name: propertyName,
+      type: propertyType,
+      labels: labelMappings.collect({ k,v -> k}),
+      metricClass: metricClass
+  );
+  Cache.Entry entry = Cache.mbeanMappings.computeIfAbsent(key, { k -> new Cache.Entry(
+      objectNames: [],
+      attributes: [:]
+  )});
+  entry.objectNames.add(beanName.toString());
+  def beanAttributes = conditionalAttributes == null
+      ? beanInfo.getAttributes()
+      : beanInfo.getAttributes()
+          .findAll({ attribute -> !conditionalAttributes.containsKey(attribute.getName()) })
+  conditionalAttributes?.each({
+      cond, attrs ->
+      System.err.println("Condition attribute: ${cond} => ${bean.getProperty(cond).getClass()}: ${bean.getProperty(cond)}");
+      final boolean enabled = bean.getProperty(cond)
+      if (enabled) {
+          System.err.println("Running true exclusions: ${attrs.trueExclusionAttributes}");
+          beanAttributes = beanAttributes.findAll({ beanAttribute ->
+              String attrName = beanAttribute.getName()
+              boolean state = !attrs.trueExclusionAttributes.contains(attrName)
+              System.err.println("Attribute: ${attrName} => ${state}");
+              return state;
+          })
+      } else {
+          System.err.println("Running false exclusions: ${attrs.falseExclusionAttributes}");
+          beanAttributes = beanAttributes.findAll({ beanAttribute ->
+              String attrName = beanAttribute.getName()
+              boolean state = !attrs.falseExclusionAttributes.contains(attrName)
+              System.err.println("Attribute: ${attrName} -> ${state}")
+              return state
+          })
+      }
+  })
+  if (conditionalAttributes != null) {
+      System.err.println(beanAttributes.collect({ attr -> attr.getName() }))
+  }
+  beanAttributes.each({ attribute ->
+    def mappingLookupKey = isGauge || attribute?.getType() == "java.lang.Object"
+        ? resolveGaugeValueType(bean)
+        : attribute.getType()
+    def callback = callbackMappings[mappingLookupKey]
     if (callback == null) {
       return
     }
-    System.err.println("Bean name: ${beanName}")
-    otel.instrument(
-      otel.mbean(beanName.toString()),
-      camelToSnake("${nameMappings[domain]}.${propertyType}.${propertyName}"),
-      "${propertyType} ${propertyName}",
-      "1",
-      labelMappings,
-      attribute.getName(),
-      callback
+    def attributeName = attribute.getName()
+    entry.attributes.putIfAbsent(attributeName, new Cache.Attribute(
+        name: camelToSnake(constructName(
+            nameMappings[domain],
+            propertyType,
+            propertyName,
+            attributeName
+        )),
+        desc: "${formatDescSection(propertyType)}${formatDescSection(propertyName)}${attributeName}",
+        unit: "1",
+        labelMappings: labelMappings,
+        callbackType: mappingLookupKey,
+        callback: callback
+    ));
+  })
+}
+
+def cacheMBeans(final String objectName,
+                final Map<String, String> nameMappings,
+                final List<ObjectName> excludeObjectNames = [],
+                final Map<ObjectName, Map<String, ConditionalAttributes>> includeAttributesCond = [:]) {
+  if (Cache.initialised) {
+    return
+  }
+  def mbeans = otel.queryJmx(objectName)
+  mbeans.findAll({
+    mbean -> 
+        def name = mbean.name()
+        return !excludeObjectNames.any({ exclude -> exclude.apply(name) })
+  }).each({
+    mbean -> cacheMBean(
+        mbean,
+        nameMappings,
+        includeAttributesCond.find({
+            name, _cond -> name.apply(mbean.name())
+        })?.getValue()
     )
   })
 }
 
-def instrumentMBeans(String objectName) {
-  def mbeans = otel.queryJmx(objectName)
-  mbeans.each({ mbean -> 
-    instrumentMBean(mbean)
+def instrumentMBeans() {
+  Cache.mbeanMappings.each({ key, entry ->
+      def mbeans = otel.mbeans((entry.objectNames) as ArrayList);
+      entry.attributes.each({ name, attribute ->
+          otel.instrument(
+              mbeans,
+              attribute.name,
+              attribute.desc,
+              attribute.unit,
+              attribute.labelMappings,
+              name,
+              attribute.callback
+          );
+      })
   })
 }
 
-def __instrumentCassandra() {
-  instrumentMBeans("org.apache.cassandra.metrics:type=Cache,*")
-  instrumentMBeans("org.apache.cassandra.metrics:type=BufferPool,*")
-  instrumentMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*")
+/* =============================
+ *          CASSANDRA
+ * =============================
+ */
+
+def cacheCassandraMBeans() {
+  if (!Cache.initialised) {
+      def nameMappings = [
+          "org.apache.cassandra.metrics": "cassandra"
+      ]
+      cacheMBeans("org.apache.cassandra.metrics:type=Cache,*", nameMappings)
+      cacheMBeans("org.apache.cassandra.metrics:type=BufferPool,*", nameMappings)
+      cacheMBeans("org.apache.cassandra.metrics:type=ThreadPools,*", nameMappings)
+      cacheMBeans("org.apache.cassandra.metrics:type=StorageProxy,*", nameMappings)
+      cacheMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*", nameMappings)
+  }
 }
 
 /* =============================
@@ -288,190 +285,35 @@ def __instrumentCassandra() {
  * =============================
  */
 
-def __instrumentJVM() {
-    def classLoading = otel.mbean("java.lang:type=ClassLoading")
-    otel.instrument(
-        classLoading,
-        "jvm.classes.loaded",
-        "number of loaded classes",
-        "1",
-        "LoadedClassCount",
-        otel.&longValueCallback
-    )
-
-    // TODO: Rework this collection for GC since it's incorrect
-    def garbageCollector = otel.mbeans("java.lang:type=GarbageCollector,*")
-    otel.instrument(
-        garbageCollector,
-        "jvm.gc.collections.count",
-        "total number of collections that have occurred",
-        "1",
-        ["name" : { mbean -> mbean.name().getKeyProperty("name") }],
-        "CollectionCount",
-        otel.&longCounterCallback
-    )
-    otel.instrument(
-        garbageCollector,
-        "jvm.gc.collections.elapsed",
-        "the approximate accumulated collection elapsed time in milliseconds",
-        "ms",
-        ["name" : { mbean -> mbean.name().getKeyProperty("name") }],
-        "CollectionTime",
-        otel.&longCounterCallback
-    )
-
-    def memory = otel.mbean("java.lang:type=Memory")
-    otel.instrument(
-        memory,
-        "jvm.memory.heap",
-        "current heap usage",
-        "by",
-        "HeapMemoryUsage",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        memory,
-        "jvm.memory.nonheap",
-        "current non-heap usage",
-        "by",
-        "NonHeapMemoryUsage",
-        otel.&longValueCallback
-    )
-
-    def memoryPool = otel.mbeans("java.lang:type=MemoryPool,*")
-    otel.instrument(
-        memoryPool,
-        "jvm.memory.pool",
-        "current memory pool usage",
-        "by",
-        ["name" : { mbean -> mbean.name().getKeyProperty("name") }],
-        "Usage",
-        otel.&longValueCallback
-    )
-
-    def threading = otel.mbean("java.lang:type=Threading")
-    otel.instrument(
-        threading,
-        "jvm.threads.count",
-        "number of threads",
-        "1",
-        "ThreadCount",
-        otel.&longValueCallback
-    )
-
-    def operatingSystem = otel.mbeans("java.lang:type=OperatingSystem")
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.committed_virtual_memory",
-        "Size of committed virtual memory",
-        "1",
-        "CommittedVirtualMemorySize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.total_memory_size",
-        "Total Memory Size",
-        "1",
-        "TotalMemorySize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.total_physical_memory_size",
-        "Total Physical Memory Size",
-        "1",
-        "TotalPhysicalMemorySize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.cpu_load",
-        "CPU Load",
-        "1",
-        "CpuLoad",
-        otel.&doubleValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.process_cpu_load",
-        "Process CPU Load",
-        "1",
-        "ProcessCpuLoad",
-        otel.&doubleValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.process_cpu_time",
-        "Process CPU Time",
-        "1",
-        "ProcessCpuTime",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.system_cpu_load",
-        "System CPU Load",
-        "1",
-        "SystemCpuLoad",
-        otel.&doubleValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.system_load_average",
-        "System Load Average",
-        "1",
-        "SystemLoadAverage",
-        otel.&doubleValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.free_memory",
-        "Free Memory",
-        "1",
-        "FreeMemorySize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.free_memory_physical",
-        "Free Physical Memory",
-        "1",
-        "FreePhysicalMemorySize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.free_swap",
-        "Free Swap Space",
-        "1",
-        "FreeSwapSpaceSize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.total_swap_space",
-        "Total Swap Space",
-        "1",
-        "TotalSwapSpaceSize",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.max_file_descriptors",
-        "Max File Descriptors",
-        "1",
-        "MaxFileDescriptorCount",
-        otel.&longValueCallback
-    )
-    otel.instrument(
-        operatingSystem,
-        "jvm.os.open_file_descriptors",
-        "Open File Descriptors",
-        "1",
-        "OpenFileDescriptorCount",
-        otel.&longValueCallback
-    )
+def cacheJVMMBeans() {
+    if (!Cache.initialised) {
+        def nameMappings = [
+            "java.lang": "jvm"
+        ]
+        def conditions = [
+            (new ObjectName("java.lang:type=MemoryPool,*")): [
+                "CollectionUsageThresholdSupported": new ConditionalAttributes(
+                    trueExclusionAttributes: [],
+                    falseExclusionAttributes: [
+                        "CollectionUsage",
+                        "CollectionUsageThreshold",
+                        "CollectionUsageThresholdCount",
+                        "CollectionUsageThresholdExceeded"
+                    ]
+                ),
+                "UsageThresholdSupported": new ConditionalAttributes(
+                    trueExclusionAttributes: [],
+                    falseExclusionAttributes: [
+                        "Usage",
+                        "UsageThreshold",
+                        "UsageThresholdCount",
+                        "UsageThresholdExceeded"
+                    ]
+                )
+            ]
+        ]
+        cacheMBeans("java.lang:*", nameMappings, [], conditions)
+    }
 }
 
 /* =============================
@@ -479,5 +321,14 @@ def __instrumentJVM() {
  * =============================
  */
 
-__instrumentCassandra()
-__instrumentJVM()
+def instrument() {
+    if (!Cache.initialised) {
+        cacheCassandraMBeans()
+        cacheJVMMBeans()
+        Cache.initialised = true
+        Cache.printCache();
+    }
+    instrumentMBeans()
+}
+
+instrument()
