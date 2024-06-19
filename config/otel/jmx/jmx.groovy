@@ -218,6 +218,15 @@ def cacheMBean(final GroovyMBean bean,
         callback: callback
     ));
   })
+  if (entry.attributes.isEmpty()) {
+      final String attributeNames = beanInfo.getAttributes()
+          .collect({ attribute -> attribute.getName() })
+          .join(", ")
+      System.err.println(
+          "[WARNING] No instrumentable attributes found for ObjectName \"${beanName.toString()}\", skipping. Attributes were: [${attributeNames}]"
+      )
+      Cache.mbeanMappings.remove(key);
+  }
 }
 
 def cacheMBeans(final String objectName,
@@ -230,16 +239,18 @@ def cacheMBeans(final String objectName,
   def mbeans = otel.queryJmx(objectName)
   mbeans.findAll({
     mbean -> 
-        def name = mbean.name()
-        return !excludeObjectNames.any({ exclude -> exclude.apply(name) })
+        final ObjectName mbeanName = mbean.name()
+        return !excludeObjectNames.any({ exclude -> exclude.apply(mbeanName) })
   }).each({
-    mbean -> cacheMBean(
-        mbean,
-        nameMappings,
-        includeAttributesCond.find({
-            name, _cond -> name.apply(mbean.name())
-        })?.getValue()
-    )
+    mbean ->
+        final ObjectName mbeanName = mbean.name()
+        return cacheMBean(
+            mbean,
+            nameMappings,
+            includeAttributesCond.find({
+                name, _cond -> name.apply(mbeanName)
+            })?.getValue()
+        )
   })
 }
 
