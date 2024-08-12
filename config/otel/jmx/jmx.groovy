@@ -281,13 +281,16 @@ def cacheCassandraMBeans() {
       return
   }
   def nameMappings = [
-      "org.apache.cassandra.metrics": "cassandra"
+      "org.apache.cassandra.metrics": "cassandra",
+      "org.apache.cassandra.metrics.scheduler": "cassandra_scheduler"
   ]
-  cacheMBeans("org.apache.cassandra.metrics:type=Cache,*", nameMappings)
-  cacheMBeans("org.apache.cassandra.metrics:type=BufferPool,*", nameMappings)
-  cacheMBeans("org.apache.cassandra.metrics:type=ThreadPools,*", nameMappings)
+  //cacheMBeans("org.apache.cassandra.metrics:type=Cache,*", nameMappings)
+  //cacheMBeans("org.apache.cassandra.metrics:type=BufferPool,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics.scheduler:type=ThreadPools,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics.scheduler:type=SharedExecutorPool,*", nameMappings)
+  cacheMBeans("org.apache.cassandra.metrics.scheduler:type=SEPWorker,*", nameMappings)
   cacheMBeans("org.apache.cassandra.metrics:type=StorageProxy,*", nameMappings)
-  cacheMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*", nameMappings)
+  //cacheMBeans("org.apache.cassandra.metrics:type=ColumnFamily,*", nameMappings)
 }
 
 /* =============================

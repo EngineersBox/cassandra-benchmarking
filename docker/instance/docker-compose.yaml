@@ -8,6 +8,9 @@ services:
       - "../../config/cassandra:/etc/cassandra" 
       - "../../config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" 
       - "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" 
+    mem_limit: 16gb
+    memswap_limit: 16gb
+    mem_swappiness: 0
     ports:
       - 7000:7000
       - 7001:7001
