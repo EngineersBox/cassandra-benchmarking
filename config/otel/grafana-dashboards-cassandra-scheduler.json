@@ -580,7 +580,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "Total",
+          "legendFormat": "Active",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1088,7 +1088,8 @@
                 "value": 80
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
         "overrides": []
       },
@@ -2232,13 +2233,13 @@
     ]
   },
   "time": {
-    "from": "now-3h",
-    "to": "now"
+    "from": "2024-08-21T03:50:40.934Z",
+    "to": "2024-08-21T05:54:54.705Z"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Cassandra Scheduler",
   "uid": "cdv9dpm63dgjke",
-  "version": 5,
+  "version": 7,
   "weekStart": ""
 }
