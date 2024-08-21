@@ -93,7 +93,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -112,7 +112,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "schedule",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -350,7 +350,7 @@
           "calcs": [],
           "displayMode": "list",
           "placement": "bottom",
-          "showLegend": true
+          "showLegend": false
         },
         "tooltip": {
           "mode": "single",
@@ -825,7 +825,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{scope}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -1024,7 +1024,7 @@
           "fullMetaSearch": false,
           "includeNullMetadata": true,
           "instant": false,
-          "legendFormat": "__auto",
+          "legendFormat": "{{scope}}",
           "range": true,
           "refId": "A",
           "useBackend": false
@@ -2164,48 +2164,48 @@
         "current": {
           "selected": true,
           "text": [
-            "ViewBuildExecutor",
+            "CacheCleanupExecutor",
+            "CompactionExecutor",
+            "GossipStage",
+            "HintsDispatcher",
             "MemtableFlushWriter",
             "MemtablePostFlush",
-            "SecondaryIndexExecutor",
-            "ValidationExecutor",
             "MemtableReclaimMemory",
-            "PerDiskMemtableFlushWriter_0",
-            "StatusPropagationExecutor",
-            "HintsDispatcher",
-            "CompactionExecutor",
-            "Sampler",
-            "Native-Transport-Auth-Requests",
-            "SecondaryIndexManagement",
-            "ReadStage",
-            "CacheCleanupExecutor",
-            "PendingRangeCalculator",
             "MigrationStage",
-            "Native-Transport-Requests",
+            "PendingRangeCalculator",
+            "PerDiskMemtableFlushWriter_0",
+            "Sampler",
+            "SecondaryIndexExecutor",
+            "SecondaryIndexManagement",
+            "StatusPropagationExecutor",
+            "ValidationExecutor",
+            "ViewBuildExecutor",
             "MutationStage",
-            "GossipStage"
+            "ReadStage",
+            "Native-Transport-Auth-Requests",
+            "Native-Transport-Requests"
           ],
           "value": [
-            "ViewBuildExecutor",
+            "CacheCleanupExecutor",
+            "CompactionExecutor",
+            "GossipStage",
+            "HintsDispatcher",
             "MemtableFlushWriter",
             "MemtablePostFlush",
-            "SecondaryIndexExecutor",
-            "ValidationExecutor",
             "MemtableReclaimMemory",
-            "PerDiskMemtableFlushWriter_0",
-            "StatusPropagationExecutor",
-            "HintsDispatcher",
-            "CompactionExecutor",
-            "Sampler",
-            "Native-Transport-Auth-Requests",
-            "SecondaryIndexManagement",
-            "ReadStage",
-            "CacheCleanupExecutor",
-            "PendingRangeCalculator",
             "MigrationStage",
-            "Native-Transport-Requests",
+            "PendingRangeCalculator",
+            "PerDiskMemtableFlushWriter_0",
+            "Sampler",
+            "SecondaryIndexExecutor",
+            "SecondaryIndexManagement",
+            "StatusPropagationExecutor",
+            "ValidationExecutor",
+            "ViewBuildExecutor",
             "MutationStage",
-            "GossipStage"
+            "ReadStage",
+            "Native-Transport-Auth-Requests",
+            "Native-Transport-Requests"
           ]
         },
         "datasource": {
@@ -2233,13 +2233,13 @@
     ]
   },
   "time": {
-    "from": "2024-08-21T03:50:40.934Z",
-    "to": "2024-08-21T05:54:54.705Z"
+    "from": "now-3h",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
   "title": "Cassandra Scheduler",
   "uid": "cdv9dpm63dgjke",
-  "version": 7,
+  "version": 8,
   "weekStart": ""
 }
