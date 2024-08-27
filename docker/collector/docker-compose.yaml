@@ -1,35 +1,64 @@
 services:
-  otel:
-    container_name: otel
-    image: ghcr.io/engineersbox/otel-lgtm:latest
+  cassandra:
+    container_name: cassandra
+    image: ghcr.io/engineersbox/cassandra:5.0
+    volumes:
+      - "../../log:/var/lib/cassandra/logs"
+      - "../../config/otel/otel-instance.properties:/etc/otel/otel.properties" 
+      - "../../config/cassandra:/etc/cassandra" 
+      - "../../config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" 
+      - "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" 
+        #- "/home/users/u6940136/cassandra_data:/var/lib/cassandra/data" 
+    mem_limit: 25gb
+    memswap_limit: 25gb
+    mem_swappiness: 0
+    user: "1000:1000"
+    ports:
+      - 7000:7000
+      - 7001:7001
+      - 7199:7199
+      - 9042:9042
+      - 9160:9160
+    env_file:
+      - path: .env
+        required: true
+  otel-hostmetrics:
+    container_name: otel-hostmetrics
+    image: otel/opentelemetry-collector-contrib:0.101.0
     volumes:
       - "../../log:/var/log/otel"
-      - "../../config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
-      - "../../config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
-      - "../../config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
-      - "../../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
-      - "../../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-data-serializer.json"
-      - "../../config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
-      - "../../data:/otel-lgtm/data"
-      - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
-    ports:
-      - 3000:3000
-      - 4317:4317
-      - 4318:4318
-      - 9090:9090
-    networks:
-      - otel
-  reducer:
-    container_name: reducer
-    image: otel/opentelemetry-ebpf-reducer:v0.10.2
-    command: ["--port", "8000", "--prom", "0.0.0.0:7010", "--log-console", "--debug"]
+      - "../../config/otel/otel-instance-config.yaml:/etc/otelcol-contrib/config.yaml"
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
+      - /etc:/hostfs/etc 
+      - /var/cache:/hostfs/cache 
+      - /usr/src:/hostfs/usr/src 
+      - /lib/modules:/hostfs/lib/modules 
+      - /boot:/boot
+      - /snap:/snap
+      - /mnt:/mnt
+      - /:/hostfs
+      - /proc:/hostfs/proc
+    user: "1000:1000"
+    env_file:
+      - path: .env
+        required: true
+    network_mode: host
+    pid: host
+    privileged: true
+  otel-kernel:
+    container_name: otel-kernel
+    image: otel/opentelemetry-ebpf-kernel-collector:v0.10.2
+    command: ["--log-console"]
     volumes:
-      - "../../log:/var/log"
-    ports:
-      - 7010:7010
-      - 8000:8000
-    networks:
-      - otel
-networks:
-  otel:
-    name: otel
+      - /var/run/docker.sock:/var/run/docker.sock 
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
+      - /etc:/hostfs/etc 
+      - /var/cache:/hostfs/cache 
+      - /usr/src:/hostfs/usr/src 
+      - /lib/modules:/hostfs/lib/modules 
+    env_file:
+      - path: .env
+        required: true
+    network_mode: host
+    pid: host
+    privileged: true

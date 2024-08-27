@@ -30,8 +30,10 @@ exporters:
   prometheusremotewrite:
     endpoint: http://localhost:9090/api/v1/write
     add_metric_suffixes: true
-  otlphttp:
+  otlphttp/metrics:
     endpoint: http://localhost:4318
+  otlphttp/traces:
+    endpoint: http://localhost:4418
   loki:
     endpoint: http://localhost:3100/loki/api/v1/push
   debug/metrics:
@@ -55,7 +57,7 @@ service:
       processors:
       - batch
       exporters:
-      - otlphttp
+      - otlphttp/traces
       - debug/traces
       - file/traces
     metrics:
