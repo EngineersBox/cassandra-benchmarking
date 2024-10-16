@@ -2,6 +2,7 @@ import groovy.jmx.GroovyMBean
 import groovy.transform.EqualsAndHashCode
 import javax.management.ObjectName
 import java.util.ArrayList
+import java.util.concurrent.TimeUnit
 
 /* =============================
  *     AUTO-INSTRUMENTATION
@@ -91,8 +92,9 @@ ${indent}}""";
       }
   }
 
-  static boolean initialised = false
   static Map<Cache.Key, Cache.Entry> mbeanMappings = [:]
+  static long lastPoll = System.nanoTime();
+  static final long pollFreq = TimeUnit.SECONDS.toNanos(10);
 
   static def printCache() {
       Cache.mbeanMappings.each({ key, entry ->
@@ -233,16 +235,13 @@ def cacheMBeans(final String objectName,
                 final Map<String, String> nameMappings,
                 final List<ObjectName> excludeObjectNames = [],
                 final Map<ObjectName, Map<String, ConditionalAttributes>> includeAttributesCond = [:]) {
-  if (Cache.initialised) {
-    return
-  }
   def mbeans = otel.queryJmx(objectName)
   mbeans.findAll({
     mbean -> 
         final ObjectName mbeanName = mbean.name()
         return !excludeObjectNames.any({ exclude -> exclude.apply(mbeanName) })
   }).each({
-    mbean ->
+     mbean ->
         final ObjectName mbeanName = mbean.name()
         return cacheMBean(
             mbean,
@@ -277,9 +276,6 @@ def instrumentMBeans() {
  */
 
 def cacheCassandraMBeans() {
-  if (Cache.initialised) {
-      return
-  }
   def nameMappings = [
       "org.apache.cassandra.metrics": "cassandra",
       "org.apache.cassandra.metrics.scheduler": "cassandra_scheduler"
@@ -299,9 +295,6 @@ def cacheCassandraMBeans() {
  */
 
 def cacheJVMMBeans() {
-    if (Cache.initialised) {
-        return
-    }
     def nameMappings = [
         "java.lang": "jvm"
     ]
@@ -336,10 +329,11 @@ def cacheJVMMBeans() {
  */
 
 def instrument() {
-    if (!Cache.initialised) {
+    final long now = System.nanoTime();
+    if (now - Cache.lastPoll >= Cache.pollFreq) {
+        Cache.lastPoll = now;
         cacheCassandraMBeans()
         cacheJVMMBeans()
-        Cache.initialised = true
         Cache.printCache();
     }
     instrumentMBeans()
