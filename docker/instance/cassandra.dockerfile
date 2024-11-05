@@ -2,7 +2,8 @@ FROM debian:bookworm-slim
 LABEL org.opencontainers.image.source https://github.com/EngineersBox/cassandra-benchmarking
 
 ARG REPOSITORY="https://github.com/EngineersBox/cassandra.git"
-ARG COMMIT_ISH="cassandra-5.0"
+ARG BRANCH="cassandra-5.0"
+ARG COMMIT=""
 ARG UID=1000
 ARG GID=1000
 ARG OTEL_COLLECTOR_JAR_VERSION=v2.6.0
@@ -66,7 +67,8 @@ WORKDIR /var/lib
 RUN git clone "$REPOSITORY" cassandra_repo
 
 WORKDIR /var/lib/cassandra_repo
-RUN git checkout "$COMMIT_ISH"
+RUN git checkout "$BRANCH"
+RUN if [ "x$COMMIT" != "x" ]; then git checkout "$COMMIT"; fi
 # Build the artifacts
 RUN ant artifacts
 # Untar everything into the correct place
