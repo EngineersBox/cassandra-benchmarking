@@ -2967,7 +2967,7 @@
     "list": [
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "1",
             "124",
@@ -3449,12 +3449,11 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "CompactionExecutor",
             "MemtableReclaimMemory",
             "MigrationStage",
-            "MutationStage",
             "HintsDispatcher",
             "ReadStage",
             "PendingRangeCalculator",
@@ -3476,7 +3475,6 @@
             "CompactionExecutor",
             "MemtableReclaimMemory",
             "MigrationStage",
-            "MutationStage",
             "HintsDispatcher",
             "ReadStage",
             "PendingRangeCalculator",
@@ -3519,42 +3517,18 @@
       },
       {
         "current": {
-          "selected": false,
+          "selected": true,
           "text": [
             "cpu0",
             "cpu8",
             "cpu4",
-            "cpu11",
-            "cpu9",
-            "cpu5",
-            "cpu10",
-            "cpu12",
-            "cpu7",
-            "cpu15",
-            "cpu1",
-            "cpu6",
-            "cpu14",
-            "cpu13",
-            "cpu2",
-            "cpu3"
+            "cpu11"
           ],
           "value": [
             "cpu0",
             "cpu8",
             "cpu4",
-            "cpu11",
-            "cpu9",
-            "cpu5",
-            "cpu10",
-            "cpu12",
-            "cpu7",
-            "cpu15",
-            "cpu1",
-            "cpu6",
-            "cpu14",
-            "cpu13",
-            "cpu2",
-            "cpu3"
+            "cpu11"
           ]
         },
         "datasource": {
@@ -3581,8 +3555,8 @@
       {
         "current": {
           "selected": false,
-          "text": "16",
-          "value": "16"
+          "text": "4",
+          "value": "4"
         },
         "datasource": {
           "type": "prometheus",
@@ -3615,6 +3589,6 @@
   "timezone": "browser",
   "title": "Cassandra Scheduler 2",
   "uid": "cdv9dpm63dgjke2",
-  "version": 1,
+  "version": 3,
   "weekStart": ""
 }
