@@ -1020,7 +1020,7 @@
             "spanNulls": false,
             "stacking": {
               "group": "A",
-              "mode": "percent"
+              "mode": "normal"
             },
             "thresholdsStyle": {
               "mode": "off"
@@ -3589,7 +3589,7 @@
           "uid": "prometheus"
         },
         "definition": "query_result(count(count by (cpu) (system_cpu_utilization_ratio{cpu=~\"$cpu\"})))",
-        "hide": 0,
+        "hide": 2,
         "includeAll": false,
         "multi": false,
         "name": "cpu_count",
