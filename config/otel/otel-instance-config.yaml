@@ -31,17 +31,15 @@ receivers:
             enabled: true
           process.cpu.utilization:
             enabled: true
-          process.disk_operations:
+          process.disk.operations:
             enabled: true
           process.handles:
             enabled: true
-          process.memory_utilization:
+          process.memory.utilization:
             enabled: true
           process.open_file_descriptors:
             enabled: true
           process.paging.faults:
-            enabled: true
-          process.cgroup:
             enabled: true
   docker_stats:
     endpoint: http://<DOCKER HOST>:2375

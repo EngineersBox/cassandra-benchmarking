@@ -25,6 +25,7 @@ services:
       - "../../config/otel/otel-instance-config.yaml:/etc/otelcol-contrib/config.yaml"
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
       - /etc:/hostfs/etc 
+      - /etc:/etc
       - /var/cache:/hostfs/cache 
       - /usr/src:/hostfs/usr/src 
       - /lib/modules:/hostfs/lib/modules 

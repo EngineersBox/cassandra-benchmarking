@@ -59,7 +59,7 @@ service:
       exporters:
       - otlphttp/traces
       - debug/traces
-      - file/traces
+      # - file/traces
     metrics:
       receivers:
       - otlp
@@ -70,7 +70,7 @@ service:
       exporters:
       - prometheusremotewrite
       - debug/metrics
-      - file/metrics
+      # - file/metrics
     logs:
       receivers:
       - otlp
@@ -79,4 +79,4 @@ service:
       exporters:
       - loki
       - debug/logs
-      - file/logs
+      # - file/logs
