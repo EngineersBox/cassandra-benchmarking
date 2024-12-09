@@ -4,7 +4,7 @@ import geni.rspec.pg as pg
 from .application.app import *
 from .application.node import Node
 from .application.cluster import Cluster
-from .application.bundle.cassandra import CassandraApplication
+from .application.bundle.cassandra import CassandraApplication, DataCentre
 from .application.bundle.mongodb import MongoDBApplication
 from .application.bundle.elasticsearch import ElasticsearchApplication
 from .application.bundle.scylla import ScyllaApplication
@@ -30,28 +30,15 @@ class Provisioner:
             iface
         )
 
-    def nodeInstallApplication(self, cluster: Cluster, node: Node) -> None:
-        node.instance.addService(pg.Install(
-            # TODO: Make sure this URL is correct and constructed properly
-            url=f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{cluster.application.version}/{cluster.application}.tar.gz",
-            path="/local"
-        ))
-        node_ips = " ".join([_node.interface.addresses[0] for _node in cluster.nodes])
-        node_roles = " ".join(node.roles)
-        env_file_content = f"""# Node configuration properties
-APPLICATION_VERSION={cluster.application.version}
-NODE_IPS=({node_ips})
-ROLES=({node_roles})
-"""
-        node.instance.addService(pg.Execute(shell="bash", command=f"echo \"{env_file_content}\" > node_configuration.sh"))
-        node.instance.addService(pg.Execute(shell="bash", command="install.sh"))
-
     def provisionLAN(self, request: pg.Request, params: portal.Namespace, cluster: Cluster) -> None:
         lan: pg.LAN = pg.LAN("LAN")
         for node in cluster.nodes:
             lan.addInterface(node.interface)
         lan.connectSharedVlan(params.vlan_type)
         request.addResource(lan)
+
+    def partitionDataCentres(self, params: portal.Namespace) -> dict[str, DataCentre]:
+        pass
 
     def bootstrapDB(self, request: pg.Request, params: portal.Namespace) -> Cluster:
         app_variant: ApplicationVariant = ApplicationVariant(ApplicationVariant._member_map_[params.cluster_application])
@@ -66,15 +53,15 @@ ROLES=({node_roles})
             app = ElasticsearchApplication(params.cluster_application_version)
         else:
             raise ValueError(f"Unknown application type: {app_variant}")
-        cluster: Cluster = Cluster(app)
+        cluster: Cluster = Cluster()
         for i in range(params.node_count):
             cluster.nodes.append(self.nodeProvision(i, request, params))
-        cluster.application.nodeDetermineRoles(cluster.nodes)
+        app.preConfigureClusterLevelProperties(cluster)
         # Addresses are assigned in previous loop, we need to know
         # them all before installing as each node should know the
         # addresses of all other nodes
         for node in cluster.nodes:
-            self.nodeInstallApplication(cluster, node)
+            app.nodeInstallApplication(node)
         
         self.provisionLAN(request, params, cluster)
         return cluster

@@ -15,8 +15,34 @@ def validateParameters(params: portal.Namespace) -> None:
 def main() -> None:
     portal.context.defineParameterGroup(PARAMETER_GROUP_CLUSTER, "Cluster")
     portal.context.defineParameterGroup(PARAMETER_GROUP_NODE, "Node")
-    portal.context.defineParameter("node_count", "Number of DB nodes", portal.ParameterType.INTEGER, 1, groupId=PARAMETER_GROUP_NODE)
-    portal.context.defineParameter("node_size", "Instance size for each node", portal.ParameterType.STRING, "<TODO>", groupId=PARAMETER_GROUP_NODE)
+    portal.context.defineParameter(
+        "dc_count",
+        "Number of DataCentres",
+        portal.ParameterType.INTEGER,
+        1,
+        groupId=PARAMETER_GROUP_CLUSTER
+    )
+    portal.context.defineParameter(
+        "rack_count",
+        "Racks per datacentre",
+        portal.ParameterType.INTEGER,
+        1,
+        groupId=PARAMETER_GROUP_CLUSTER
+    )
+    portal.context.defineParameter(
+        "node_count",
+        "Nodes per rack",
+        portal.ParameterType.INTEGER,
+        1,
+        groupId=PARAMETER_GROUP_CLUSTER
+    )
+    portal.context.defineParameter(
+        "node_size",
+        "Instance size for each node",
+        portal.ParameterType.STRING,
+        "<TODO>",
+        groupId=PARAMETER_GROUP_NODE
+    )
     portal.context.defineParameter("node_disk_image", "Node disk image", portal.ParameterType.STRING, "<TODO>", groupId=PARAMETER_GROUP_NODE)
     portal.context.defineParameter(
         "vlan_type",

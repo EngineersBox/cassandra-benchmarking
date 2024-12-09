@@ -1,0 +1,104 @@
+cluster_name: "@@CLUSTER_NAME@@"
+num_tokens: @@NUM_TOKENS@@
+allocate_tokens_for_local_replication_factor: 3
+partitioner: org.apache.cassandra.dht.Murmur3Partitioner
+prepared_statements_cache_size: @@PREPARED_STATEMENTS_CACHE_SIZE@@
+row_cache_size: @@ROW_CACHE_SIZE@@
+row_cache_save_period: @@ROW_CACHE_SAVE_PERIOD@@
+commitlog_sync: periodic
+commitlog_sync_period: 10000ms
+commitlog_segment_size: @@COMMIT_LOG_SEGMENT_SIZE@@
+commitlog_disk_access_mode: @@COMMIT_LOG_DISK_ACCESS_MODE@@
+commitlog_total_space: @@COMMIT_LOG_TOTAL_SPACE@@
+flush_compression: fast
+seed_provider:
+  - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+    parameters:
+      - seeds: "@@SEED_NODE_IPS@@"
+concurrent_reads: @@CONCURRENT_READS@@
+concurrent_writes: @@CONCURRENT_WRITES@@
+concurrent_counter_writes: @@CONCURRENT_COUNTER_WRITES@@
+networking_cache_size: @@NETWORKING_CACHE_SIZE@@
+file_cache_enabled: @@FILE_CACHE_ENABLED@@
+file_cache_size: @@FILE_CACHE_SIZE@@
+buffer_pool_use_heap_if_exhausted: @@BUFFER_POOL_USE_HEAP_IF_EXHAUSTED@@
+disk_optimisation_strategy: ssd
+memtable:
+  configurations:
+    skiplist:
+      class_name: SkipListMemtable
+    trie:
+      class_name: TrieMemtable
+    default:
+      inherits: trie
+memtable_heap_space: @@MEMTABLE_HEAP_SPACE@@
+memtable_offheap_space: @@MEMTABLE_OFFHEAP_SPACE@@
+memtable_allocation_type: @@MEMTABLE_ALLOCATION_TYPE@@
+memtable_flush_writers: @@MEMTABLE_FLUSH_WRITERS@@
+trickle_fsync: @@TRICKLE_FSYNC@@
+trickle_fsync_interval: @@TRICKLE_FSYNC_INTERVAL@@
+storage_port: 7000
+ssl_storage_port: 7001
+listen_address: @@LISTEN_ADDRESS@@
+broadcast_address: @@BROADCAST_ADDRESS@
+start_native_transport: true
+native_transport_port: 9042
+native_transport_max_frame_size: 16MiB
+native_transport_max_concurrent_connections: -1
+native_transport_max_concurrent_connections_per_ip: -1
+native_transport_allow_older_protocols: true
+rpc_address: @@RPC_ADDRESS@@
+broadcast_rpc_address: @BROADCAST_RPC_ADDRESS@
+rpc_keepalive: true
+incremental_backups: false
+snapshot_before_compaction: false
+auto_snapshot: true
+sstable:
+  selected_format: bti
+column_index_size: 16KiB
+default_compaction:
+  class_name: UnifiedCompactionStrategy
+  parameters:
+    scaling_parameters: @@SSTABLE_SCALING_PARAMETERS@@
+    target_sstable_size: @@SSTABLE_TARGET_SIZE@@
+concurrent_compactors: @@CONCURRENT_COMPACTORS@@
+compaction_throughput: @@COMPACTION_THROUGHPUT@@
+sstable_preemptive_open_interval @@SSTABLE_PREEMPTIVE_OPEN_INTERVAL@@
+stream_entire_sstables: true
+entire_sstable_stream_throughput_outbound: 24MiB/s
+stream_throughput_outbound: 24MiB/s
+read_request_timeout: 5000ms
+range_request_timeout: 10000ms
+write_request_timeout: 10000ms
+counter_write_request_timeout: 1000ms
+cas_contention_timeout: 5000ms
+truncate_request_timeout: 60000ms
+request_timeout: 10000ms
+endpoint_snitch: @@ENDPOINT_SNITCH@@
+dynamic_snitch_update_interval: 100ms
+dynamic_snitch_reset_interval: 600000ms
+dynamic_snitch_badness_threshold: 1.0
+crypto_provider:
+  - class_name: org.apache.cassandra.security.DefaultCryptoProvider
+    parameters:
+      - fail_on_missing_provider: "false"
+server_encryption_options:
+  internode_encryption: none
+  legacy_ssl_storage_port_enabled: false
+  require_client_auth: false
+  require_endpoint_verification: false
+client_encryption_options:
+  enabled: false
+  require_client_auth: false
+internode_compression: @@INTERNODE_COMPRESSION@@
+inter_dc_tcp_nodelay: @@INTER_DC_TCP_NODELAY@@
+transparent_data_encryption_options:
+  enabled: false
+audit_logging_options:
+  enabled: false
+diagnostic_events_enabled: false
+repaired_data_tracking_for_range_reads_enabled: false
+repaired_data_tracking_for_partition_reads_enabled: false
+report_unconfirmed_repaired_data_mismatches: false
+materialized_views_enabled: false
+storage_compatibility_mode: NONE
