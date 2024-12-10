@@ -35,19 +35,19 @@ class ClusterParameterGroup(ParameterGroup):
         super().__init__(
             parameters=[
                 Parameter(
-                    name="datacentre_count",
+                    name="dc_count",
                     description="Number of datacentres",
                     typ=portal.ParameterType.INTEGER,
                     defaultValue=1
                 ),
                 Parameter(
-                    name="rack_count",
+                    name="racks_per_dc",
                     description="Number of racks in each datacentre",
                     typ=portal.ParameterType.INTEGER,
                     defaultValue=1
                 ),
                 Parameter(
-                    name="node_count",
+                    name="nodes_per_rack",
                     description="Number of nodes in each rack",
                     typ=portal.ParameterType.INTEGER,
                     defaultValue=1

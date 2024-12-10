@@ -11,30 +11,30 @@ from .application.bundle.mongodb import MongoDBApplication
 from .application.bundle.elasticsearch import ElasticsearchApplication
 from .application.bundle.scylla import ScyllaApplication
 
+NODE_IPV4_FORMAT = "10.50.0.%d"
+NODE_IPV4_NETMASK = "255.255.255.0"
+NODE_INTERFACE_NAME_FORMAT = "if%d"
+NODE_PHYSICAL_INTERFACE_FORMAT = "eth%d"
+
+APPLICATION_BINDINGS: dict[ApplicationVariant, type[AbstractApplication]] = {
+    CassandraApplication.variant(): CassandraApplication,
+    MongoDBApplication.variant(): MongoDBApplication,
+    ElasticsearchApplication.variant(): ElasticsearchApplication,
+    ScyllaApplication.variant(): ScyllaApplication
+}
+
 class Provisioner:
-
-    NODE_IPV4_FORMAT = "10.50.0.%d"
-    NODE_IPV4_NETMASK = "255.255.255.0"
-    NODE_INTERFACE_NAME_FORMAT = "if%d"
-    NODE_PHYSICAL_INTERFACE_FORMAT = "eth%d"
-
-    APPLICATION_BINDINGS: dict[ApplicationVariant, type[AbstractApplication]] = {
-        CassandraApplication.variant(): CassandraApplication,
-        MongoDBApplication.variant(): MongoDBApplication,
-        ElasticsearchApplication.variant(): ElasticsearchApplication,
-        ScyllaApplication.variant(): ScyllaApplication
-    }
 
     def nodeProvision(self, i: int, request: pg.Request, params: portal.Namespace) -> Node:
         id = str(uuid.uuid4())
         node_vm = pg.RawPC(id)
         node_vm.disk_image = params.node_disk_image
         request.addResource(node_vm)
-        iface: pg.Interface = node_vm.addInterface(Provisioner.NODE_INTERFACE_NAME_FORMAT % i)
+        iface: pg.Interface = node_vm.addInterface(NODE_INTERFACE_NAME_FORMAT % i)
         # iface.component_id = Provisioner.NODE_PHYSICAL_INTERFACE_FORMAT % i
         address: pg.IPv4Address = pg.IPv4Address(
-            Provisioner.NODE_IPV4_FORMAT % i,
-            Provisioner.NODE_IPV4_NETMASK
+            NODE_IPV4_FORMAT % i,
+            NODE_IPV4_NETMASK
         )
         iface.addAddress(address)
         return Node(
@@ -68,13 +68,13 @@ class Provisioner:
         dc_idx: int = 0
         rack_idx: int = 0
         node_idx: int = 0
-        for _ in range(params.datacentre_count):
+        for _ in range(params.dc_count):
             dc: DataCentre = self.datacentreProvision(dc_idx, params)
             datacentres[dc.name] = dc
-            for _ in range(params.rack_count):
+            for _ in range(params.racks_per_dc):
                 rack: Rack = self.rackProvision(rack_idx, params)
                 dc.racks[rack.name] = rack
-                for _ in range(params.node_count):
+                for _ in range(params.nodes_per_rack):
                     rack.nodes.append(self.nodeProvision(node_idx, request, params))
                     node_idx += 1
                 rack_idx += 1
@@ -84,7 +84,7 @@ class Provisioner:
 
     def bootstrapDB(self, request: pg.Request, params: portal.Namespace) -> Cluster:
         app_variant: ApplicationVariant = ApplicationVariant(ApplicationVariant._member_map_[params.cluster_application])
-        app: AbstractApplication = self.APPLICATION_BINDINGS[app_variant](params.cluster_application_version)
+        app: AbstractApplication = APPLICATION_BINDINGS[app_variant](params.cluster_application_version)
         cluster: Cluster = Cluster()
         cluster.datacentres = self.partitionDataCentres(request, params)
         app.preConfigureClusterLevelProperties(cluster)

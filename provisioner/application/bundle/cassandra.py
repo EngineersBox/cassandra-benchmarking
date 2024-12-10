@@ -1,11 +1,13 @@
+import math
 from typing import Any
-from dataclasses import dataclass
 from geni.rspec import pg
+import geni.portal as portal
 from ..app import AbstractApplication, ApplicationVariant
 from ..node import Node
+from ..rack import Rack
 from ..cluster import Cluster
 
-DEFAULT_CASSANDRA_YAML: dict[str, Any] = {
+CASSANDRA_YAML_DEFAULT_PROPERTIES: dict[str, Any] = {
     "cluster_name": "Cassandra Cluster",
     "num_tokens": 16,
     "prepared_statements_cache_size": "",
@@ -44,7 +46,8 @@ DEFAULT_CASSANDRA_YAML: dict[str, Any] = {
 
 class CassandraApplication(AbstractApplication):
     all_ips: list[pg.Interface] = []
-    seeds: list[pg.Interface] = []
+    # Node Ids to node interfaces
+    seeds: dict[str, pg.Interface] = {}
 
     def __init__(self, version: str):
         super().__init__(version)
@@ -53,34 +56,38 @@ class CassandraApplication(AbstractApplication):
     def variant(cls) -> ApplicationVariant:
         return ApplicationVariant.CASSANDRA
 
-    def preConfigureClusterLevelProperties(self, cluster: Cluster) -> None:
-        super().preConfigureClusterLevelProperties(cluster)
-        self.determineSeedNodes([node for node in cluster.nodesGenerator()])
+    def preConfigureClusterLevelProperties(self, cluster: Cluster, params: portal.Namespace) -> None:
+        super().preConfigureClusterLevelProperties(cluster, params)
+        self.determineSeedNodes(cluster, params)
         # TODO: Cluster level properties
 
-    def determineSeedNodes(self, nodes: list[Node]) -> None:
-        self.all_ips = [node.interface for node in nodes]
-        self.seeds = self.all_ips[:int((len(nodes) / 2) + 1)]
+    def determineSeedNodes(self, cluster: Cluster, params: portal.Namespace) -> None:
+        # Spread seeds across DCs to ensure at least 1 per DC.
+        # Seeds within DCs should be spread across racks too.
+        self.all_ips = [node.interface for node in cluster.nodesGenerator()]
+        nodes_per_dc: int = params.racks_per_dc * params.nodes_per_rack
+        seeds_per_dc: int = int(math.log2(nodes_per_dc))
+        for dc in cluster.datacentres.values():
+            racks: list[Rack] = list(dc.racks.values())
+            for i in range(seeds_per_dc):
+                rack: Rack = racks[i % len(racks)]
+                for node in rack.nodes:
+                    if (node.id in self.seeds):
+                        continue
+                    self.seeds[node.id] = node.interface
+                    break
 
     def nodeInstallApplication(self, node: Node) -> None:
         super().nodeInstallApplication(node)
-        node.instance.addService(pg.Install(
-            # TODO: Make sure this URL is correct and constructed properly
-            url=f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{super().version}/{super().variant}.tar.gz",
-            path="/local"
-        ))
-        # Bash env file
-        node_ips = " ".join([addr.addresses[0] for addr in self.all_ips])
-        env_file_content = f"""# Node configuration properties
-APPLICATION_VARIANT={super().variant}
-APPLICATION_VERSION={super().version}
-NODE_IPS=({node_ips})
-"""
-        node.instance.addService(pg.Execute(shell="bash", command=f"echo \"{env_file_content}\" > node_configuration.sh"))
-        node.instance.addService(pg.Execute(shell="bash", command="install.sh"))
-        # Cassandra configuration
-        # TODO: 1. Read from template YAML config
-        #       2. Replace template entries with values
-        #       3. Write to node as service
-        cass_yaml_content = ""
-        node.instance.addService(pg.Execute(shell="bash", command=f"echo \"{cass_yaml_content}\" > /local/config/cassandra/cassandra.yaml"))
+        self._unpackApplication(
+            node,
+            f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{super().version}/{CassandraApplication.variant()}.tar.gz"
+        )
+        all_ips_prop: str = " ".join([f"\"{iface.addresses[0]}\"" for iface in self.all_ips])
+        self._invokeInstaller(
+            node,
+            {
+                "NODE_ALL_IPS": "({})".format(all_ips_prop),
+                "SEED_NODE": "true" if node in self.seeds else "false"
+            }
+        )
