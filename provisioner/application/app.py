@@ -12,12 +12,16 @@ class ApplicationVariant(Enum):
     ELASTICSEARCH = "elasticsearch"
 
 class AbstractApplication(ABC):
-    variant: ApplicationVariant
     version: str
 
-    def __init__(self, variant: ApplicationVariant, version: str):
-        self.variant = variant
+    @abstractmethod
+    def __init__(self, version: str):
         self.version = version
+
+    @abstractmethod
+    @classmethod
+    def variant(cls) -> ApplicationVariant:
+        pass
 
     @abstractmethod
     def preConfigureClusterLevelProperties(self, cluster: Cluster) -> None:
@@ -27,18 +31,30 @@ class AbstractApplication(ABC):
     def nodeInstallApplication(self, node: Node) -> None:
         pass
 
-APPLICATION_PARAMETER_GROUP_NAME = "Application"
-APPLICATION_PARAMETER_GROUP_ID = "application"
-APPLICATION_PARAMETERS: ParameterGroup = ParameterGroup(
-    name=APPLICATION_PARAMETER_GROUP_NAME,
-    id=APPLICATION_PARAMETER_GROUP_ID,
-    parameters=[
-        Parameter(
-            name="application",
-            description="Database application to install",
-            typ=portal.ParameterType.STRING,
-            defaultValue=ApplicationVariant.CASSANDRA,
-            legalValues=[(app.value, app.name.title()) for app in ApplicationVariant]
-        ),
-    ]
-)
+class ApplicationParameterGroup(ParameterGroup):
+
+    @classmethod
+    def name(cls) -> str:
+        return "Application"
+
+    @classmethod
+    def id(cls) -> str:
+        return "application"
+
+    def __init__(self):
+        super().__init__(
+            parameters=[
+                Parameter(
+                    name="application",
+                    description="Database application to install",
+                    typ=portal.ParameterType.STRING,
+                    defaultValue=ApplicationVariant.CASSANDRA,
+                    legalValues=[(app.value, app.name.title()) for app in ApplicationVariant]
+                ),
+            ]
+        )
+
+    def validate(self) -> None:
+        super().validate()
+
+APPLICATION_PARAMETERS: ParameterGroup = ApplicationParameterGroup()

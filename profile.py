@@ -1,11 +1,8 @@
 import geni.portal as portal
 import geni.rspec.pg as pg 
-from .provisioner.application.cluster import Cluster
-from .provisioner.application.app import ApplicationVariant
+from .provisioner.application.cluster import CLUSTER_PARAMETERS, Cluster
+from .provisioner.application.app import APPLICATION_PARAMETERS, ApplicationVariant
 from .provisioner.provisoner import Provisioner
-
-PARAMETER_GROUP_CLUSTER = "cluster"
-PARAMETER_GROUP_NODE = "node"
 
 def validateParameters(params: portal.Namespace) -> None:
     if params.node_count < 1 or params.node_count > 9:
@@ -13,63 +10,8 @@ def validateParameters(params: portal.Namespace) -> None:
     portal.context.verifyParameters()
 
 def main() -> None:
-    portal.context.defineParameterGroup(PARAMETER_GROUP_CLUSTER, "Cluster")
-    portal.context.defineParameterGroup(PARAMETER_GROUP_NODE, "Node")
-    portal.context.defineParameter(
-        "dc_count",
-        "Number of DataCentres",
-        portal.ParameterType.INTEGER,
-        1,
-        groupId=PARAMETER_GROUP_CLUSTER
-    )
-    portal.context.defineParameter(
-        "rack_count",
-        "Racks per datacentre",
-        portal.ParameterType.INTEGER,
-        1,
-        groupId=PARAMETER_GROUP_CLUSTER
-    )
-    portal.context.defineParameter(
-        "node_count",
-        "Nodes per rack",
-        portal.ParameterType.INTEGER,
-        1,
-        groupId=PARAMETER_GROUP_CLUSTER
-    )
-    portal.context.defineParameter(
-        "node_size",
-        "Instance size for each node",
-        portal.ParameterType.STRING,
-        "<TODO>",
-        groupId=PARAMETER_GROUP_NODE
-    )
-    portal.context.defineParameter("node_disk_image", "Node disk image", portal.ParameterType.STRING, "<TODO>", groupId=PARAMETER_GROUP_NODE)
-    portal.context.defineParameter(
-        "vlan_type",
-        "VLAN Type",
-        portal.ParameterType.STRING,
-        "mesoscale-openflow",
-        [
-            # ('mlnx-sn2410', 'Mellanox SN2410'),
-            # ('dell-s4048',  'Dell S4048'),
-            ("mesoscale-openflow", "Mesoscale OpenFlow")
-        ],
-        groupId=PARAMETER_GROUP_CLUSTER
-    )
-    portal.context.defineParameter(
-        "cluster_application",
-        "Cluster Application",
-        portal.ParameterType.STRING,
-        ApplicationVariant.CASSANDRA,
-        [(app, str(app).title()) for app in ApplicationVariant],
-        groupId=PARAMETER_GROUP_CLUSTER
-    )
-    portal.context.defineParameter(
-        "cluster_application_version",
-        "Cluster application version",
-        portal,portal.ParameterType.STRING,
-        groupId=PARAMETER_GROUP_CLUSTER
-    )
+    CLUSTER_PARAMETERS.bind()
+    APPLICATION_PARAMETERS.bind()
     params: portal.Namespace = portal.context.bindParameters()
     request: pg.Request = portal.context.makeRequestRSpec()
     validateParameters(params)

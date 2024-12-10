@@ -42,34 +42,25 @@ DEFAULT_CASSANDRA_YAML: dict[str, Any] = {
     "internode_dc_tcp_nodelay": "false"
 }
 
-@dataclass
-class Rack:
-    name: str
-    nodes: list[Node]
-
-@dataclass
-class DataCentre:
-    name: str
-    racks: list[Rack]
-
-
 class CassandraApplication(AbstractApplication):
     all_ips: list[pg.Interface] = []
     seeds: list[pg.Interface] = []
 
     def __init__(self, version: str):
-        super().__init__(ApplicationVariant.CASSANDRA, version)
+        super().__init__(version)
+
+    @classmethod
+    def variant(cls) -> ApplicationVariant:
+        return ApplicationVariant.CASSANDRA
 
     def preConfigureClusterLevelProperties(self, cluster: Cluster) -> None:
         super().preConfigureClusterLevelProperties(cluster)
-        self.determineSeedNodes(cluster.nodes)
+        self.determineSeedNodes([node for node in cluster.nodesGenerator()])
         # TODO: Cluster level properties
 
     def determineSeedNodes(self, nodes: list[Node]) -> None:
         self.all_ips = [node.interface for node in nodes]
         self.seeds = self.all_ips[:int((len(nodes) / 2) + 1)]
-
-    def 
 
     def nodeInstallApplication(self, node: Node) -> None:
         super().nodeInstallApplication(node)
