@@ -23,6 +23,9 @@ APPLICATION_BINDINGS: dict[ApplicationVariant, type[AbstractApplication]] = {
     ScyllaApplication.variant(): ScyllaApplication
 }
 
+# TODO: How do we get creds like docker registry access tokens
+#       onto nodes without baking them into publicly visible
+#       stuff (i.e. archives or code)?
 class Provisioner:
 
     def nodeProvision(self, i: int, request: pg.Request, params: portal.Namespace) -> Node:
