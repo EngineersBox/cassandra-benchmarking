@@ -1,5 +1,5 @@
 import math
-from typing import Any, Optional, Tuple
+from typing import Any, Tuple
 from geni.rspec import pg
 import geni.portal as portal
 
@@ -9,42 +9,42 @@ from ..node import Node
 from ..rack import Rack
 from ..cluster import Cluster
 
-CASSANDRA_YAML_DEFAULT_PROPERTIES: dict[str, Any] = {
-    "cluster_name": "Cassandra Cluster",
-    "num_tokens": 16,
-    "prepared_statements_cache_size": "",
-    "row_cache_size": "0MiB",
-    "row_cache_save_period": "0s",
-    "commit_log_segment_size": "32MiB",
-    "commit_log_disk_access_mode": "auto",
-    "commit_log_total_space": "8192MiB",
-    "seed_node_ips": "",
-    "concurrent_reads": 32,
-    "concurrent_writes": 32,
-    "concurrent_counter_writes": 32,
-    "networking_cache_size": "128MiB",
-    "file_cache_enabled": "false",
-    "file_cache_size": "512MiB",
-    "buffer_pool_use_heap_if_exhausted": "false",
-    "memtable_heap_space": "",
-    "memtable_offheap_space": "",
-    "memtable_allocation_type": "heap_buffers",
-    "memtable_flush_writers": 2,
-    "trickle_fsync": "false",
-    "trickle_fsync_interval": "10240KiB",
-    "listen_address": "127.0.0.1",
-    "boradcast_address": "127.0.0.1",
-    "rpc_address": "0.0.0.0",
-    "broadcast_rpc_address": "127.0.0.1",
-    "sstable_scaling_parameters": "T4",
-    "sstable_target_size": "1GiB",
-    "concurrent_compactors": 16,
-    "compaction_throughput": "64MiB/s",
-    "sstable_preemptive_open_interval": "50MiB",
-    "endpoint_snitch": "GossipingPropertyFileSnitch",
-    "internode_compression": "dc",
-    "internode_dc_tcp_nodelay": "false"
-}
+# CASSANDRA_YAML_DEFAULT_PROPERTIES: dict[str, Any] = {
+#     "cluster_name": "Cassandra Cluster",
+#     "num_tokens": 16,
+#     "prepared_statements_cache_size": "",
+#     "row_cache_size": "0MiB",
+#     "row_cache_save_period": "0s",
+#     "commit_log_segment_size": "32MiB",
+#     "commit_log_disk_access_mode": "auto",
+#     "commit_log_total_space": "8192MiB",
+#     "seed_node_ips": "",
+#     "concurrent_reads": 32,
+#     "concurrent_writes": 32,
+#     "concurrent_counter_writes": 32,
+#     "networking_cache_size": "128MiB",
+#     "file_cache_enabled": "false",
+#     "file_cache_size": "512MiB",
+#     "buffer_pool_use_heap_if_exhausted": "false",
+#     "memtable_heap_space": "",
+#     "memtable_offheap_space": "",
+#     "memtable_allocation_type": "heap_buffers",
+#     "memtable_flush_writers": 2,
+#     "trickle_fsync": "false",
+#     "trickle_fsync_interval": "10240KiB",
+#     "listen_address": "127.0.0.1",
+#     "boradcast_address": "127.0.0.1",
+#     "rpc_address": "0.0.0.0",
+#     "broadcast_rpc_address": "127.0.0.1",
+#     "sstable_scaling_parameters": "T4",
+#     "sstable_target_size": "1GiB",
+#     "concurrent_compactors": 16,
+#     "compaction_throughput": "64MiB/s",
+#     "sstable_preemptive_open_interval": "50MiB",
+#     "endpoint_snitch": "GossipingPropertyFileSnitch",
+#     "internode_compression": "dc",
+#     "internode_dc_tcp_nodelay": "false"
+# }
 
 class CassandraApplication(AbstractApplication):
     all_ips: list[pg.Interface] = []
@@ -64,7 +64,6 @@ class CassandraApplication(AbstractApplication):
         self.cluster = cluster
         self.determineSeedNodes(cluster, params)
         self.constructTopology(cluster)
-        # TODO: Cluster level properties
 
     def determineSeedNodes(self, cluster: Cluster, params: portal.Namespace) -> None:
         # Spread seeds across DCs to ensure at least 1 per DC.
