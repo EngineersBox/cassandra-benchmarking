@@ -41,6 +41,7 @@ class AbstractApplication(ABC):
         env_file_content = f"""# Node configuration properties
 APPLICATION_VARIANT={self.variant()}
 APPLICATION_VERSION={self.version}
+NODE_IP={node.interface.addresses[0]}
 """
         for (k,v) in properties.items():
             env_file_content = env_file_content.join(f"\n{k}={v}")

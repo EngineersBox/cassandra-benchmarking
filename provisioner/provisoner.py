@@ -87,7 +87,7 @@ class Provisioner:
         app: AbstractApplication = APPLICATION_BINDINGS[app_variant](params.cluster_application_version)
         cluster: Cluster = Cluster()
         cluster.datacentres = self.partitionDataCentres(request, params)
-        app.preConfigureClusterLevelProperties(cluster)
+        app.preConfigureClusterLevelProperties(cluster, params)
         # Addresses are assigned in previous loop, we need to know
         # them all before installing as each node should know the
         # addresses of all other nodes

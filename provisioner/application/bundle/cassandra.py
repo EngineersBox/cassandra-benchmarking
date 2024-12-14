@@ -1,8 +1,10 @@
 import math
-from typing import Any
+from typing import Any, Optional, Tuple
 from geni.rspec import pg
 import geni.portal as portal
-from ..app import AbstractApplication, ApplicationVariant
+
+from provisioner.application.datacentre import DataCentre
+from ..app import AbstractApplication, ApplicationVariant, LOCAL_PATH
 from ..node import Node
 from ..rack import Rack
 from ..cluster import Cluster
@@ -48,6 +50,7 @@ class CassandraApplication(AbstractApplication):
     all_ips: list[pg.Interface] = []
     # Node Ids to node interfaces
     seeds: dict[str, pg.Interface] = {}
+    topology: dict[Node, Tuple[DataCentre, Rack]] = {}
 
     def __init__(self, version: str):
         super().__init__(version)
@@ -58,7 +61,9 @@ class CassandraApplication(AbstractApplication):
 
     def preConfigureClusterLevelProperties(self, cluster: Cluster, params: portal.Namespace) -> None:
         super().preConfigureClusterLevelProperties(cluster, params)
+        self.cluster = cluster
         self.determineSeedNodes(cluster, params)
+        self.constructTopology(cluster)
         # TODO: Cluster level properties
 
     def determineSeedNodes(self, cluster: Cluster, params: portal.Namespace) -> None:
@@ -77,6 +82,36 @@ class CassandraApplication(AbstractApplication):
                     self.seeds[node.id] = node.interface
                     break
 
+    def constructTopology(self, cluster: Cluster) -> None:
+        for dc in cluster.datacentres.values():
+            for rack in dc.racks.values():
+                for node in rack.nodes:
+                    self.topology[node] = (dc, rack)
+
+    def writeRackDcProperties(self, node: Node) -> None:
+        dc, rack = self.topology[node]
+        properties = f"""# DC and Rack specification of this node
+dc={dc.name}
+rack={rack.name}
+"""
+        node.instance.addService(pg.Execute(
+            shell="bash",
+            command=f"echo \"{properties}\" > {LOCAL_PATH}/config/cassandra-rackdc.properties"
+        ))
+
+    def writeTopologyProperties(self, node: Node) -> None:
+        default_dc, default_rack = list(self.topology.values())[0]
+        properties = f"""# Mappings of Node IP=DC:Rack
+# Default mapping for unknown nodes
+default={default_dc.name}:{default_rack.name}
+"""
+        for node, (dc, rack) in self.topology.items():
+            properties.join(f"\n{node.interface.addresses[0].address}={dc.name}:{rack.name}")
+        node.instance.addService(pg.Execute(
+            shell="bash",
+            command=f"echo \"{properties}\" > {LOCAL_PATH}/config/cassandra-topology.properties"
+        ))
+
     def nodeInstallApplication(self, node: Node) -> None:
         super().nodeInstallApplication(node)
         self._unpackApplication(
@@ -91,3 +126,5 @@ class CassandraApplication(AbstractApplication):
                 "SEED_NODE": "true" if node in self.seeds else "false"
             }
         )
+        self.writeRackDcProperties(node)
+        self.writeTopologyProperties(node)
