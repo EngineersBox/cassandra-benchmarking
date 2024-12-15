@@ -1,8 +1,7 @@
 import math
-from typing import Any, Tuple
-from geni.rspec import pg
 import geni.portal as portal
-
+from typing import Tuple
+from geni.rspec import pg
 from provisioner.application.datacentre import DataCentre
 from ..app import AbstractApplication, ApplicationVariant, LOCAL_PATH
 from ..node import Node

@@ -1,22 +1,21 @@
-from dataclasses import dataclass
-from typing import Generator, Iterable
-
+import geni.portal as portal
+from dataclasses import dataclass, field
+from typing import Iterator
 from .node import Node
 from .rack import Rack
 from .datacentre import DataCentre
-from ..parameters import Parameter, ParameterGroup
-import geni.portal as portal
+from provisioner.parameters import Parameter, ParameterGroup
 
 @dataclass
 class Cluster:
-    datacentres: dict[str, DataCentre] = {}
+    datacentres: dict[str, DataCentre] = field(default_factory=dict)
 
-    def racksGenerator(self) -> Generator[Rack]:
+    def racksGenerator(self) -> Iterator[Rack]:
         for dc in self.datacentres.values():
             for rack in dc.racks.values():
                 yield rack
 
-    def nodesGenerator(self) -> Generator[Node]:
+    def nodesGenerator(self) -> Iterator[Node]:
         for rack in self.racksGenerator():
             for node in rack.nodes:
                 yield node

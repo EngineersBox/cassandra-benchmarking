@@ -1,8 +1,8 @@
 import geni.portal as portal
 import geni.rspec.pg as pg 
-from .provisioner.application.cluster import CLUSTER_PARAMETERS, Cluster
-from .provisioner.application.app import APPLICATION_PARAMETERS, ApplicationVariant
-from .provisioner.provisoner import Provisioner
+from provisioner.application.cluster import CLUSTER_PARAMETERS, Cluster
+from provisioner.application.app import APPLICATION_PARAMETERS
+from provisioner.provisoner import Provisioner
 
 def validateParameters(params: portal.Namespace) -> None:
     if params.node_count < 1 or params.node_count > 9:
@@ -19,4 +19,6 @@ def main() -> None:
     cluster: Cluster = provisioner.bootstrapDB(request, params)
     provisioner.bootstrapCollector(request, params, cluster)
     portal.context.printRequestRSpec()
-    
+
+if __name__ == "__main__":
+    main()

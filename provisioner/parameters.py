@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Optional, Tuple
 import geni.portal as portal
 
@@ -10,7 +10,7 @@ class Parameter:
     typ: str
     longDescription: Optional[str] = None
     defaultValue: Optional[Any] = None
-    legalValues: list[Tuple[str, Any]] = []
+    legalValues: list[Tuple[str, Any]] = field(default_factory=list)
     advanced: bool = False
 
 
@@ -37,13 +37,13 @@ class ParameterGroup(ABC):
                 groupId=self.id()
             )
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def id(cls) -> str:
         pass
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def name(cls) -> str:
         pass
 

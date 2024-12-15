@@ -12,6 +12,9 @@ class ApplicationVariant(Enum):
     SCYLLA = "scylla"
     ELASTICSEARCH = "elasticsearch"
 
+    def __str__(self) -> str:
+        return "%s" % self.value
+
 LOCAL_PATH = "/local"
 
 class AbstractApplication(ABC):
@@ -21,8 +24,8 @@ class AbstractApplication(ABC):
     def __init__(self, version: str):
         self.version = version
 
-    @abstractmethod
     @classmethod
+    @abstractmethod
     def variant(cls) -> ApplicationVariant:
         pass
 
@@ -79,8 +82,8 @@ class ApplicationParameterGroup(ParameterGroup):
                     name="application",
                     description="Database application to install",
                     typ=portal.ParameterType.STRING,
-                    defaultValue=ApplicationVariant.CASSANDRA,
-                    legalValues=[(app.value, app.name.title()) for app in ApplicationVariant]
+                    defaultValue=str(ApplicationVariant.CASSANDRA),
+                    legalValues=[(str(app), app.name.title()) for app in ApplicationVariant]
                 ),
             ]
         )
