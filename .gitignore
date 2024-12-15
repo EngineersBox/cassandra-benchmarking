@@ -2,6 +2,7 @@ log
 apache-cassandra-*.tar.gz*
 opentelemetry-*.jar
 /cassandra
+**/*.pyc
 
 # Added by cargo
 
