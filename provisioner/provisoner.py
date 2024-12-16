@@ -67,6 +67,7 @@ class Provisioner:
         request.addResource(lan)
 
     def partitionDataCentres(self, request: pg.Request, params: portal.Namespace) -> dict[str, DataCentre]:
+        print("Partitioning nodes into datacentres and racks")
         datacentres: dict[str, DataCentre] = {}
         dc_idx: int = 0
         rack_idx: int = 0
@@ -86,8 +87,8 @@ class Provisioner:
         return datacentres
 
     def bootstrapDB(self, request: pg.Request, params: portal.Namespace) -> Cluster:
-        app_variant: ApplicationVariant = ApplicationVariant(ApplicationVariant._member_map_[params.cluster_application])
-        app: AbstractApplication = APPLICATION_BINDINGS[app_variant](params.cluster_application_version)
+        app_variant: ApplicationVariant = ApplicationVariant(ApplicationVariant._member_map_[str(params.application).upper()])
+        app: AbstractApplication = APPLICATION_BINDINGS[app_variant](params.application_version)
         cluster: Cluster = Cluster()
         cluster.datacentres = self.partitionDataCentres(request, params)
         app.preConfigureClusterLevelProperties(cluster, params)
@@ -95,6 +96,7 @@ class Provisioner:
         # them all before installing as each node should know the
         # addresses of all other nodes
         for node in cluster.nodesGenerator():
+            print(f"Installing {params.application} on node {node.id}")
             app.nodeInstallApplication(node) 
         self.provisionLAN(request, params, cluster)
         return cluster

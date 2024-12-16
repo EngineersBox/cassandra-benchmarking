@@ -85,6 +85,7 @@ class CassandraApplication(AbstractApplication):
             for rack in dc.racks.values():
                 for node in rack.nodes:
                     self.topology[node] = (dc, rack)
+                    print(f"{node.id} => ({dc.name}, {rack.name})")
 
     def writeRackDcProperties(self, node: Node) -> None:
         dc, rack = self.topology[node]
@@ -103,8 +104,8 @@ rack={rack.name}
 # Default mapping for unknown nodes
 default={default_dc.name}:{default_rack.name}
 """
-        for node, (dc, rack) in self.topology.items():
-            properties.join(f"\n{node.interface.addresses[0].address}={dc.name}:{rack.name}")
+        for _node, (dc, rack) in self.topology.items():
+            properties += f"\n{_node.getInterfaceAddress()}={dc.name}:{rack.name}"
         node.instance.addService(pg.Execute(
             shell="bash",
             command=f"echo \"{properties}\" > {LOCAL_PATH}/config/cassandra-topology.properties"
@@ -114,9 +115,9 @@ default={default_dc.name}:{default_rack.name}
         super().nodeInstallApplication(node)
         self._unpackApplication(
             node,
-            f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{super().version}/{CassandraApplication.variant()}.tar.gz"
+            f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{self.version}/{CassandraApplication.variant()}.tar.gz"
         )
-        all_ips_prop: str = " ".join([f"\"{iface.addresses[0]}\"" for iface in self.all_ips])
+        all_ips_prop: str = " ".join([f"\"{iface.addresses[0].address}\"" for iface in self.all_ips])
         self._invokeInstaller(
             node,
             {

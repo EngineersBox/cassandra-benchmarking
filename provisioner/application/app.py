@@ -44,10 +44,10 @@ class AbstractApplication(ABC):
         env_file_content = f"""# Node configuration properties
 APPLICATION_VARIANT={self.variant()}
 APPLICATION_VERSION={self.version}
-NODE_IP={node.interface.addresses[0]}
+NODE_IP={node.getInterfaceAddress()}
 """
         for (k,v) in properties.items():
-            env_file_content = env_file_content.join(f"\n{k}={v}")
+            env_file_content += f"\n{k}={v}"
         # Bash sourcable configuration properties that the
         # install script uses
         node.instance.addService(pg.Execute(
@@ -83,12 +83,19 @@ class ApplicationParameterGroup(ParameterGroup):
                     description="Database application to install",
                     typ=portal.ParameterType.STRING,
                     defaultValue=str(ApplicationVariant.CASSANDRA),
-                    legalValues=[(str(app), app.name.title()) for app in ApplicationVariant]
+                    legalValues=[(str(app), app.name.title()) for app in ApplicationVariant],
+                    required=True
+                ),
+                Parameter(
+                    name="application_version",
+                    description="Version of the application",
+                    typ=portal.ParameterType.STRING,
+                    required=True
                 ),
             ]
         )
 
-    def validate(self) -> None:
-        super().validate()
+    def validate(self, params: portal.Namespace) -> None:
+        super().validate(params)
 
 APPLICATION_PARAMETERS: ParameterGroup = ApplicationParameterGroup()

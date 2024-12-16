@@ -9,3 +9,9 @@ class Node:
     size: str
     interface: pg.Interface
     config: Optional[str] = None
+
+    def __hash__(self) -> int:
+        return self.id.__hash__()
+
+    def getInterfaceAddress(self) -> str:
+        return self.interface.addresses[0].address

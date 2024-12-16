@@ -12,7 +12,7 @@ class Parameter:
     defaultValue: Optional[Any] = None
     legalValues: list[Tuple[str, Any]] = field(default_factory=list)
     advanced: bool = False
-
+    required: bool = False
 
 class ParameterGroup(ABC):
     parameters: list[Parameter]
@@ -47,6 +47,11 @@ class ParameterGroup(ABC):
     def name(cls) -> str:
         pass
 
-    @abstractmethod
-    def validate(self) -> None:
-        pass
+    def validate(self, params: portal.Namespace) -> None:
+        for parameter in self.parameters:
+            if parameter.required and params.__dict__[parameter.name] == None:
+                portal.context.reportError(portal.ParameterError(
+                    f"Parameter '{parameter.name}' is required",
+                    [parameter.name]
+                ))
+

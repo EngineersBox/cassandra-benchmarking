@@ -52,6 +52,12 @@ class ClusterParameterGroup(ParameterGroup):
                     defaultValue=1
                 ),
                 Parameter(
+                    name="node_size",
+                    description="Instance to use for the nodes",
+                    typ=portal.ParameterType.STRING,
+                    defaultValue="<TODO>"
+                ),
+                Parameter(
                     name="node_disk_image",
                     description="Node disk image",
                     typ=portal.ParameterType.STRING,
@@ -71,7 +77,7 @@ class ClusterParameterGroup(ParameterGroup):
             ]
         )
 
-    def validate(self) -> None:
-        super().validate()
+    def validate(self,params: portal.Namespace) -> None:
+        super().validate(params)
 
 CLUSTER_PARAMETERS: ParameterGroup = ClusterParameterGroup()
