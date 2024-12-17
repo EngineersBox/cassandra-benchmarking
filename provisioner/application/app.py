@@ -1,19 +1,28 @@
 from abc import ABC, abstractmethod
 from enum import Enum
-from provisioner.application.cluster import Cluster
+from provisioner.structure.cluster import Cluster
 from provisioner.parameters import ParameterGroup, Parameter
-from .node import Node
+from provisioner.structure.node import Node
+from provisioner.provisoner import TopologyProperties
 import geni.portal as portal
 from geni.rspec import pg
 
 class ApplicationVariant(Enum):
-    CASSANDRA = "cassandra"
-    MONGO_DB = "mongodb"
-    SCYLLA = "scylla"
-    ELASTICSEARCH = "elasticsearch"
+    CASSANDRA = "cassandra", True
+    MONGO_DB = "mongodb", True
+    SCYLLA = "scylla", True
+    ELASTICSEARCH = "elasticsearch", True,
+    OTEL_COLLECTOR = "otel_collector", False
 
     def __str__(self) -> str:
-        return "%s" % self.value
+        return "%s" % self.value[0]
+
+    @staticmethod
+    def provsionableMembers() -> list["ApplicationVariant"]:
+        return list(filter(
+            lambda e: e.value[1],
+            ApplicationVariant._member_map_.values()
+        ))
 
 LOCAL_PATH = "/local"
 
@@ -30,7 +39,10 @@ class AbstractApplication(ABC):
         pass
 
     @abstractmethod
-    def preConfigureClusterLevelProperties(self, cluster: Cluster, params: portal.Namespace) -> None:
+    def preConfigureClusterLevelProperties(self,
+                                           cluster: Cluster,
+                                           params: portal.Namespace,
+                                           topologyProperties: TopologyProperties) -> None:
         pass
 
     def _unpackApplication(self, node: Node, url: str) -> None:
@@ -39,7 +51,7 @@ class AbstractApplication(ABC):
             path=LOCAL_PATH
         ))
 
-    def _invokeInstaller(self, node: Node, properties: dict[str, str]) -> None:
+    def bootstrapNode(self, node: Node, properties: dict[str, str]) -> None:
         # Bash env file
         env_file_content = f"""# Node configuration properties
 APPLICATION_VARIANT={self.variant()}
@@ -49,16 +61,15 @@ NODE_IP={node.getInterfaceAddress()}
         for (k,v) in properties.items():
             env_file_content += f"\n{k}={v}"
         # Bash sourcable configuration properties that the
-        # install script uses
+        # bootstrap script uses
         node.instance.addService(pg.Execute(
             shell="bash",
             command=f"echo \"{env_file_content}\" > {LOCAL_PATH}/node_config_properties.sh"
         ))
-        # Script to handle node-specific application installation
-        # and configuration
+        # Install bootstrap systemd unit and run it
         node.instance.addService(pg.Execute(
             shell="bash",
-            command=f"{LOCAL_PATH}/install.sh"
+            command=f"ln -s /{LOCAL_PATH}/units/bootstrap.service /etc/systemd/system/bootstrap.service && systemctl start bootstrap.service"
         ))
 
     @abstractmethod
@@ -83,7 +94,7 @@ class ApplicationParameterGroup(ParameterGroup):
                     description="Database application to install",
                     typ=portal.ParameterType.STRING,
                     defaultValue=str(ApplicationVariant.CASSANDRA),
-                    legalValues=[(str(app), app.name.title()) for app in ApplicationVariant],
+                    legalValues=[(str(app), app.name.title()) for app in ApplicationVariant.provsionableMembers()],
                     required=True
                 ),
                 Parameter(

@@ -2,11 +2,12 @@ import math
 import geni.portal as portal
 from typing import Tuple
 from geni.rspec import pg
-from provisioner.application.datacentre import DataCentre
-from ..app import AbstractApplication, ApplicationVariant, LOCAL_PATH
-from ..node import Node
-from ..rack import Rack
-from ..cluster import Cluster
+from provisioner.application.app import AbstractApplication, ApplicationVariant, LOCAL_PATH
+from provisioner.structure.datacentre import DataCentre
+from provisioner.structure.node import Node
+from provisioner.structure.rack import Rack
+from provisioner.structure.cluster import Cluster
+from provisioner.provisoner import TopologyProperties
 
 # CASSANDRA_YAML_DEFAULT_PROPERTIES: dict[str, Any] = {
 #     "cluster_name": "Cassandra Cluster",
@@ -58,8 +59,15 @@ class CassandraApplication(AbstractApplication):
     def variant(cls) -> ApplicationVariant:
         return ApplicationVariant.CASSANDRA
 
-    def preConfigureClusterLevelProperties(self, cluster: Cluster, params: portal.Namespace) -> None:
-        super().preConfigureClusterLevelProperties(cluster, params)
+    def preConfigureClusterLevelProperties(self,
+                                           cluster: Cluster,
+                                           params: portal.Namespace,
+                                           topologyProperties: TopologyProperties) -> None:
+        super().preConfigureClusterLevelProperties(
+            cluster,
+            params,
+            topologyProperties
+        )
         self.cluster = cluster
         self.determineSeedNodes(cluster, params)
         self.constructTopology(cluster)
@@ -118,7 +126,7 @@ default={default_dc.name}:{default_rack.name}
             f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{self.version}/{CassandraApplication.variant()}.tar.gz"
         )
         all_ips_prop: str = " ".join([f"\"{iface.addresses[0].address}\"" for iface in self.all_ips])
-        self._invokeInstaller(
+        self.bootstrapNode(
             node,
             {
                 "NODE_ALL_IPS": "({})".format(all_ips_prop),

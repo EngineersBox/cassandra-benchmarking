@@ -1,9 +1,9 @@
 import geni.portal as portal
 from dataclasses import dataclass, field
 from typing import Iterator
-from .node import Node
-from .rack import Rack
-from .datacentre import DataCentre
+from provisioner.structure.node import Node
+from provisioner.structure.rack import Rack
+from provisioner.structure.datacentre import DataCentre
 from provisioner.parameters import Parameter, ParameterGroup
 
 @dataclass
@@ -79,5 +79,11 @@ class ClusterParameterGroup(ParameterGroup):
 
     def validate(self,params: portal.Namespace) -> None:
         super().validate(params)
+        total_nodes = params.dc_count * params.racks_per_dc * params.nodes_per_rack
+        if total_nodes < 1 or total_nodes > 9:
+            portal.context.reportError(portal.ParameterError(
+                "Node count must be in range [1,9]",
+                ["node_count"]
+            ))
 
 CLUSTER_PARAMETERS: ParameterGroup = ClusterParameterGroup()
