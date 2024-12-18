@@ -1,14 +1,17 @@
 import geni.portal as portal
 import geni.rspec.pg as pg 
-from provisioner.application.cluster import CLUSTER_PARAMETERS, Cluster
+from typing import Tuple
+from provisioner.structure.cluster import CLUSTER_PARAMETERS, Cluster
 from provisioner.application.app import APPLICATION_PARAMETERS
 from provisioner.parameters import ParameterGroup
 from provisioner.provisoner import Provisioner
+from provisioner.collector.collector import Collector, COLLECTOR_PARAMETERS
 
 DEBUG_OUTPUT: bool = True
 PARAMETER_GROUPS: list[ParameterGroup] = [
     CLUSTER_PARAMETERS,
-    APPLICATION_PARAMETERS
+    APPLICATION_PARAMETERS,
+    COLLECTOR_PARAMETERS
 ]
 
 def bindAndValidateParameters() -> portal.Namespace:
@@ -24,8 +27,7 @@ def main() -> None:
     params: portal.Namespace = bindAndValidateParameters()
     request: pg.Request = portal.context.makeRequestRSpec()
     provisioner: Provisioner = Provisioner(request, params)
-    cluster: Cluster = provisioner.bootstrapDB()
-    provisioner.bootstrapCollector()
+    cluster, collector = provisioner.provision()
     if DEBUG_OUTPUT:
         request.writeXML("./test.xml")
     else:

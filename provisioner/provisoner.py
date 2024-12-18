@@ -118,7 +118,7 @@ class Provisioner:
                            collector: Collector,
                            topologyProperties: TopologyProperties) -> None:
         print("Bootstrapping collector")
-        app: OTELCollector = OTELCollector("<TODO>")
+        app: OTELCollector = OTELCollector(self.params.collector_version)
         app.preConfigureClusterLevelProperties(
             cluster,
             self.params,

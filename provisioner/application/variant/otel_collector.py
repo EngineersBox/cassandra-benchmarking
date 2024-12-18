@@ -5,6 +5,7 @@ from provisioner.provisoner import TopologyProperties
 import geni.portal as portal
 
 class OTELCollector(AbstractApplication):
+    ycsb_version: str
 
     def __init__(self, version: str):
         super().__init__(version)
@@ -17,7 +18,24 @@ class OTELCollector(AbstractApplication):
                                            cluster: Cluster,
                                            params: portal.Namespace,
                                            topologyProperties: TopologyProperties) -> None:
-        return super().preConfigureClusterLevelProperties(cluster, params, topologyProperties)
+        super().preConfigureClusterLevelProperties(
+            cluster,
+            params,
+            topologyProperties
+        )
+        self.ycsb_version = params.ycsb_version
 
     def nodeInstallApplication(self, node: Node) -> None:
-        return super().nodeInstallApplication(node)
+        super().nodeInstallApplication(node)
+        self.unpackTar(
+            node,
+            f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{OTELCollector.variant()}-{self.version}/{OTELCollector.variant()}.tar.gz"
+        )
+        self.unpackTar(
+            node,
+            f"https://github.com/brianfrankcooper/YCSB/releases/download/{self.ycsb_version}/ycsb-{self.ycsb_version}.tar.gz"
+        )
+        self.bootstrapNode(
+            node,
+            {},
+        )

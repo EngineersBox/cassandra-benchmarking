@@ -121,9 +121,9 @@ default={default_dc.name}:{default_rack.name}
 
     def nodeInstallApplication(self, node: Node) -> None:
         super().nodeInstallApplication(node)
-        self._unpackApplication(
+        self.unpackTar(
             node,
-            f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{self.version}/{CassandraApplication.variant()}.tar.gz"
+            f"https://github.com/EngineersBox/cassandra-benchmarking/releases/{CassandraApplication.variant()}-{self.version}/{CassandraApplication.variant()}.tar.gz"
         )
         all_ips_prop: str = " ".join([f"\"{iface.addresses[0].address}\"" for iface in self.all_ips])
         self.bootstrapNode(

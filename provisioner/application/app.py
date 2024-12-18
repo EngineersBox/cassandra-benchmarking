@@ -24,10 +24,11 @@ class ApplicationVariant(Enum):
             ApplicationVariant._member_map_.values()
         ))
 
-LOCAL_PATH = "/local"
+LOCAL_PATH = "/var/lib"
 
 class AbstractApplication(ABC):
     version: str
+    topologyProperties: TopologyProperties
 
     @abstractmethod
     def __init__(self, version: str):
@@ -43,29 +44,52 @@ class AbstractApplication(ABC):
                                            cluster: Cluster,
                                            params: portal.Namespace,
                                            topologyProperties: TopologyProperties) -> None:
-        pass
+        self.topologyProperties = topologyProperties
 
-    def _unpackApplication(self, node: Node, url: str) -> None:
+    def unpackTar(self, node: Node, url: str) -> None:
         node.instance.addService(pg.Install(
             url=url,
             path=LOCAL_PATH
         ))
 
-    def bootstrapNode(self, node: Node, properties: dict[str, str]) -> None:
+    def _writeEnvFile(self,
+                      node: Node,
+                      properties: dict[str, str]) -> None:
+        collector_address: str = self.topologyProperties.collectorInterface.addresses[0].address
         # Bash env file
         env_file_content = f"""# Node configuration properties
 APPLICATION_VARIANT={self.variant()}
 APPLICATION_VERSION={self.version}
+
+EBPF_NET_INTAKE_HOST={collector_address}
+EBPF_NET_INTAKE_PORT=8000
+
+OTEL_METRICS_EXPORTER=otlp
+OTEL_TRACES_EXPORTER=otlp
+OTEL_LOGS_EXPORTER=otlp
+OTEL_EXPORTER_OTLP_ENDPOINT=http://{collector_address}:4318
+OTEL_SERVICE_NAME={node.id}
+OTEL_RESOURCE_ATTRIBUTES=application={self.variant()}
+OTEL_TRACES_SAMPLER=always_on
+
 NODE_IP={node.getInterfaceAddress()}
 """
         for (k,v) in properties.items():
             env_file_content += f"\n{k}={v}"
         # Bash sourcable configuration properties that the
-        # bootstrap script uses
+        # bootstrap script uses as well as docker containers
         node.instance.addService(pg.Execute(
             shell="bash",
-            command=f"echo \"{env_file_content}\" > {LOCAL_PATH}/node_config_properties.sh"
+            command=f"echo \"{env_file_content}\" > {LOCAL_PATH}/node_env"
         ))
+
+    def bootstrapNode(self,
+                      node: Node,
+                      properties: dict[str, str]) -> None:
+        self._writeEnvFile(
+            node,
+            properties
+        )
         # Install bootstrap systemd unit and run it
         node.instance.addService(pg.Execute(
             shell="bash",
