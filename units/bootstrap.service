@@ -1,0 +1,6 @@
+[Unit]
+Description=Node bootstrapping
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash /local/bootstrap.sh
