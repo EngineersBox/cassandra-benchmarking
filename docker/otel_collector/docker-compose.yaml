@@ -1,0 +1,35 @@
+services:
+  otel:
+    container_name: otel
+    image: ghcr.io/engineersbox/otel-lgtm:latest
+    volumes:
+      - "../../log:/var/log/otel"
+      - "../../config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
+      - "../../config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
+      - "../../config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
+      - "../../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
+      - "../../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-data-serializer.json"
+      - "../../config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
+      - "../../data:/otel-lgtm/data"
+      - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
+    ports:
+      - 3000:3000
+      - 4317:4317
+      - 4318:4318
+      - 9090:9090
+    networks:
+      - otel
+  reducer:
+    container_name: reducer
+    image: otel/opentelemetry-ebpf-reducer:v0.10.2
+    command: ["--port", "8000", "--prom", "0.0.0.0:7010", "--log-console", "--debug"]
+    volumes:
+      - "../../log:/var/log"
+    ports:
+      - 7010:7010
+      - 8000:8000
+    networks:
+      - otel
+networks:
+  otel:
+    name: otel
