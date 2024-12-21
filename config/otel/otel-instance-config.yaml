@@ -42,7 +42,7 @@ receivers:
           process.paging.faults:
             enabled: true
   docker_stats:
-    endpoint: http://<DOCKER HOST>:2375
+    endpoint: http://@@DOCKER HOST@@:2375
     api_version: 1.45
     metrics:
       container.memory.active_anon:
@@ -75,7 +75,7 @@ receivers:
           - name: label
             values:
             - prometheus.scrape=true
-          host: http://<DOCKER HOST>:2375
+          host: http://@@DOCKER HOST@@:2375
         job_name: docker-containers
         relabel_configs:
         - action: replace

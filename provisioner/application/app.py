@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
 from enum import Enum
+from provisioner.collector.collector import OTELFeature
 from provisioner.structure.cluster import Cluster
 from provisioner.parameters import ParameterGroup, Parameter
 from provisioner.structure.node import Node
-from provisioner.provisoner import TopologyProperties
+from provisioner.topology import TopologyProperties
 import geni.portal as portal
 from geni.rspec import pg
 
@@ -29,6 +30,7 @@ LOCAL_PATH = "/var/lib"
 class AbstractApplication(ABC):
     version: str
     topologyProperties: TopologyProperties
+    collectorFeatures: set[OTELFeature]
 
     @abstractmethod
     def __init__(self, version: str):
@@ -45,6 +47,7 @@ class AbstractApplication(ABC):
                                            params: portal.Namespace,
                                            topologyProperties: TopologyProperties) -> None:
         self.topologyProperties = topologyProperties
+        self.collectorFeatures = params.collector_features
 
     def unpackTar(self, node: Node, url: str) -> None:
         node.instance.addService(pg.Install(
@@ -56,6 +59,11 @@ class AbstractApplication(ABC):
                       node: Node,
                       properties: dict[str, str]) -> None:
         collector_address: str = self.topologyProperties.collectorInterface.addresses[0].address
+        # Ensure the collector exports data for enabled features
+        for feat in self.collectorFeatures:
+            properties[f"OTEL_{str(feat).upper()}_EXPORTER"] = "otlp"
+        if OTELFeature.TRACES in self.collectorFeatures:
+            properties["OTEL_TRACES_EXPORTER"] = "always_on"
         # Bash env file
         env_file_content = f"""# Node configuration properties
 APPLICATION_VARIANT={self.variant()}
@@ -64,13 +72,9 @@ APPLICATION_VERSION={self.version}
 EBPF_NET_INTAKE_HOST={collector_address}
 EBPF_NET_INTAKE_PORT=8000
 
-OTEL_METRICS_EXPORTER=otlp
-OTEL_TRACES_EXPORTER=otlp
-OTEL_LOGS_EXPORTER=otlp
 OTEL_EXPORTER_OTLP_ENDPOINT=http://{collector_address}:4318
 OTEL_SERVICE_NAME={node.id}
 OTEL_RESOURCE_ATTRIBUTES=application={self.variant()}
-OTEL_TRACES_SAMPLER=always_on
 
 NODE_IP={node.getInterfaceAddress()}
 """

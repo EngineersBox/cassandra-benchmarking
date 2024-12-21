@@ -1,19 +1,19 @@
-from dataclasses import dataclass, field
 from typing import Tuple
 import geni.portal as portal
 import geni.rspec.pg as pg
 import uuid
-from application.app import *
+from provisioner.application.app import *
 from provisioner.structure.node import Node
 from provisioner.structure.cluster import Cluster
 from provisioner.structure.rack import Rack
 from provisioner.structure.datacentre import DataCentre
-from application.variant.cassandra import CassandraApplication
-from application.variant.mongodb import MongoDBApplication
-from application.variant.elasticsearch import ElasticsearchApplication
-from application.variant.scylla import ScyllaApplication
-from collector.collector import Collector
+from provisioner.application.variant.cassandra import CassandraApplication
+from provisioner.application.variant.mongodb import MongoDBApplication
+from provisioner.application.variant.elasticsearch import ElasticsearchApplication
+from provisioner.application.variant.scylla import ScyllaApplication
+from provisioner.collector.collector import Collector
 from provisioner.application.variant.otel_collector import OTELCollector
+from provisioner.topology import TopologyProperties
 
 NODE_IPV4_FORMAT = "10.50.0.%d"
 NODE_IPV4_NETMASK = "255.255.255.0"
@@ -26,11 +26,6 @@ APPLICATION_BINDINGS: dict[ApplicationVariant, type[AbstractApplication]] = {
     ElasticsearchApplication.variant(): ElasticsearchApplication,
     ScyllaApplication.variant(): ScyllaApplication
 }
-
-@dataclass
-class TopologyProperties:
-    collectorInterface: pg.Interface
-    nodeInterfaces: list[pg.Interface] = field(default_factory=list)
 
 # TODO: How do we get creds like docker registry access tokens
 #       onto nodes without baking them into publicly visible
@@ -99,7 +94,7 @@ class Provisioner:
                     cluster: Cluster,
                     topologyProperties: TopologyProperties) -> None:
         print("Bootstrapping cluster")
-        app_variant: ApplicationVariant = ApplicationVariant(ApplicationVariant._member_map_[str(self.params.application).upper()])
+        app_variant: ApplicationVariant = ApplicationVariant[str(self.params.application).upper()]
         app: AbstractApplication = APPLICATION_BINDINGS[app_variant](self.params.application_version)
         app.preConfigureClusterLevelProperties(
             cluster,

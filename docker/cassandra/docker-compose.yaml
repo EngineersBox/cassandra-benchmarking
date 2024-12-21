@@ -17,6 +17,9 @@ services:
       - 7199:7199
       - 9042:9042
       - 9160:9160
+    env_file:
+      - path: /var/lib/node_env
+        required: true
   otel-hostmetrics:
     container_name: otel-hostmetrics
     image: otel/opentelemetry-collector-contrib:0.101.0
