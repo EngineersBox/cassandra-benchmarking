@@ -3,7 +3,7 @@ services:
     container_name: otel
     image: ghcr.io/engineersbox/otel-lgtm:latest
     volumes:
-      - "../../log:/var/log/otel"
+      - "/var/log/otel/:log:/var/log/otel"
       - "../../config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
       - "../../config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
       - "../../config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
@@ -24,7 +24,7 @@ services:
     image: otel/opentelemetry-ebpf-reducer:v0.10.2
     command: ["--port", "8000", "--prom", "0.0.0.0:7010", "--log-console", "--debug"]
     volumes:
-      - "../../log:/var/log"
+      - "/var/log/reducer:/var/log"
     ports:
       - 7010:7010
       - 8000:8000

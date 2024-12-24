@@ -86,6 +86,11 @@ NODE_IP={node.getInterfaceAddress()}
             shell="bash",
             command=f"echo \"{env_file_content}\" > {LOCAL_PATH}/node_env"
         ))
+        # Replace template var for pushing logs
+        node.instance.addService(pg.Execute(
+            shell="bash",
+            command=f"sed -i \"s/@@COLLECTOR_ADDRESS@@/{collector_address}/g\" {LOCAL_PATH}/config/otel/otel-instance.config.yaml"
+        ))
 
     def bootstrapNode(self,
                       node: Node,

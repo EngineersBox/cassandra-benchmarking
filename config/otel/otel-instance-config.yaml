@@ -42,7 +42,8 @@ receivers:
           process.paging.faults:
             enabled: true
   docker_stats:
-    endpoint: http://@@DOCKER HOST@@:2375
+    # endpoint: http://@@DOCKER HOST@@:2375
+    endpoint: unix:///var/run/docker.sock
     api_version: 1.45
     metrics:
       container.memory.active_anon:
@@ -75,7 +76,8 @@ receivers:
           - name: label
             values:
             - prometheus.scrape=true
-          host: http://@@DOCKER HOST@@:2375
+          # host: http://@@DOCKER HOST@@:2375
+          host: unix:///var/run/docker.sock
         job_name: docker-containers
         relabel_configs:
         - action: replace
@@ -148,7 +150,7 @@ processors:
 
 exporters:
   otlphttp:
-    endpoint: http://<COLLECTOR>:4318
+    endpoint: http://@@COLLECTOR_ADDRESS@@:4318
   file/logs:
     path: /var/log/otel/hostmetrics.log
 
