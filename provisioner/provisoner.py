@@ -1,7 +1,8 @@
-from typing import Tuple
+from typing import Iterator, Tuple
 import geni.portal as portal
 import geni.rspec.pg as pg
-import uuid
+import uuid, ipaddress
+from provisioner.net.network import NetworkManager
 from provisioner.application.app import *
 from provisioner.structure.node import Node
 from provisioner.structure.cluster import Cluster
@@ -15,10 +16,6 @@ from provisioner.collector.collector import Collector
 from provisioner.application.variant.otel_collector import OTELCollector
 from provisioner.topology import TopologyProperties
 
-NODE_IPV4_FORMAT = "10.50.0.%d"
-NODE_IPV4_NETMASK = "255.255.255.0"
-NODE_INTERFACE_NAME_FORMAT = "if%d"
-NODE_PHYSICAL_INTERFACE_FORMAT = "eth%d"
 
 APPLICATION_BINDINGS: dict[ApplicationVariant, type[AbstractApplication]] = {
     CassandraApplication.variant(): CassandraApplication,
@@ -39,16 +36,17 @@ class Provisioner:
         self.request = request
         self.params = params
 
-    def nodeProvision(self, i: int) -> Node:
+    def nodeProvision(self) -> Node:
         id = str(uuid.uuid4())
         node_vm = pg.RawPC(id)
         node_vm.disk_image = self.params.node_disk_image
         self.request.addResource(node_vm)
-        iface: pg.Interface = node_vm.addInterface(NODE_INTERFACE_NAME_FORMAT % i)
+        iface: pg.Interface = node_vm.addInterface(NetworkManager.nextVirtualInterface())
         # iface.component_id = Provisioner.NODE_PHYSICAL_INTERFACE_FORMAT % i
+        net_address: ipaddress.IPv4Address = NetworkManager.nextAddress()
         address: pg.IPv4Address = pg.IPv4Address(
-            NODE_IPV4_FORMAT % i,
-            NODE_IPV4_NETMASK
+            str(net_address),
+            str(NetworkManager.ADDRESS_NETWORK.netmask)
         )
         iface.addAddress(address)
         return Node(
@@ -75,7 +73,6 @@ class Provisioner:
         datacentres: dict[str, DataCentre] = {}
         dc_idx: int = 0
         rack_idx: int = 0
-        node_idx: int = 0
         for _ in range(self.params.dc_count):
             dc: DataCentre = self.datacentreProvision(dc_idx)
             datacentres[dc.name] = dc
@@ -83,8 +80,7 @@ class Provisioner:
                 rack: Rack = self.rackProvision(rack_idx)
                 dc.racks[rack.name] = rack
                 for _ in range(self.params.nodes_per_rack):
-                    rack.nodes.append(self.nodeProvision(node_idx))
-                    node_idx += 1
+                    rack.nodes.append(self.nodeProvision())
                 rack_idx += 1
             dc_idx += 1
             rack_idx = 0
@@ -130,7 +126,8 @@ class Provisioner:
 
     def collectorProvisionHardware(self) -> Collector:
         print("Provisioning collector hardware")
-        return Collector(self.nodeProvision(0))
+        
+        return Collector(self.nodeProvision())
 
     def bindNodesViaLAN(self,
                         cluster: Cluster,
@@ -138,8 +135,18 @@ class Provisioner:
         print("Constructing VLAN and binding node interfaces")
         lan: pg.LAN = pg.LAN("LAN")
         for node in cluster.nodesGenerator():
+            print(
+                "Binding node address {} to LAN".format(
+                    node.interface.addresses[0].address
+                )
+            );
             lan.addInterface(node.interface)
         lan.addInterface(collector.node.interface)
+        print(
+            "Binding allocator interface {} to LAN".format(
+                collector.node.interface.addresses[0].address
+            )
+        )
         lan.connectSharedVlan(self.params.vlan_type)
         return lan
 
