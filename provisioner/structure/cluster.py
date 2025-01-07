@@ -61,7 +61,7 @@ class ClusterParameterGroup(ParameterGroup):
                     name="node_disk_image",
                     description="Node disk image",
                     typ=portal.ParameterType.STRING,
-                    defaultValue="<TODO>"
+                    defaultValue="urn:publicid:IDN+utah.cloudlab.us+image+cassandramulti7-PG0:ubuntu22-docker-java"
                 ),
                 Parameter(
                     name="vlan_type",
