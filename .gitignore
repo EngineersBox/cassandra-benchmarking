@@ -3,6 +3,7 @@ apache-cassandra-*.tar.gz*
 opentelemetry-*.jar
 /cassandra
 **/*.pyc
+venv/
 
 # Added by cargo
 
