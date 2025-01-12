@@ -14,8 +14,8 @@ create table ycsb.usertable (
     field7 varchar,
     field8 varchar,
     field9 varchar
-) with compaction = {'class': 'LeveledCompactionStrategy'}
-and memtable = 'trie';
+) with compaction = {'class': 'LeveledCompactionStrategy'} and memtable = 'trie';
 EOM
 
+# CQLSH_PYTHON="$(which python3.6)" ~/repos/cassandra/bin/cqlsh -e "$CQL_SCRIPT}"
 docker exec cassandra /var/lib/cassandra/bin/cqlsh -e "$CQL_SCRIPT"
