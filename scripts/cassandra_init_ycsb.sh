@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+until $(docker exec cassandra /var/lib/cassandra/bin/nodetool status | grep "UN" > /dev/null); do 
+  echo "Waiting for cassandra to start..."; 
+  sleep 10; 
+done
+
 read -r -d '' CQL_SCRIPT << EOM
 create keyspace ycsb with replication = {'class' : 'SimpleStrategy', 'replication_factor': 1 };
 create table ycsb.usertable (
