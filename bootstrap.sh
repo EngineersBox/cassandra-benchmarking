@@ -8,9 +8,12 @@ echo "[INFO] Starting $APPLICATION_VARIANT services"
 docker compose up -d /var/lib/docker/$APPLICATION_VARIANT/docker-compose.yaml
 
 if [ "x$INVOKE_INIT" != "x"]; then
+    python3 -m venv venv
+    python3 -m pip install -r requirements.txt
+    set > /tmp/$$_env
     case "$APPLICATION_VARIANT" in
         cassandra)
-            ./scripts/cassandra_init_ycsb.sh
+            python3 init/cassandra.py --environment=/tmp/$$_env
             ;;
         *)
             ;;
