@@ -4,14 +4,14 @@ services:
     image: ghcr.io/engineersbox/otel-lgtm:latest
     volumes:
       - "/var/log/otel/:log:/var/log/otel"
-      - "../../config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
-      - "../../config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
-      - "../../config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
-      - "../../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
-      - "../../config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-data-serializer.json"
-      - "../../config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
-      - "../../data:/otel-lgtm/data"
-      - "../../opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
+      - "/var/lib/cluster/config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
+      - "/var/lib/cluster/config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
+      - "/var/lib/cluster/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
+      - "/var/lib/cluster/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
+      - "/var/lib/cluster/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-data-serializer.json"
+      - "/var/lib/cluster/config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
+      - "/var/lib/cluster/data:/otel-lgtm/data"
+      - "/var/lib/cluster/opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
     ports:
       - 3000:3000
       - 4317:4317
@@ -19,6 +19,9 @@ services:
       - 9090:9090
     networks:
       - otel
+    env_file:
+      - path: /var/lib/cluster/node_env
+        required: true
   reducer:
     container_name: reducer
     image: otel/opentelemetry-ebpf-reducer:v0.10.2
@@ -30,6 +33,9 @@ services:
       - 8000:8000
     networks:
       - otel
+    env_file:
+      - path: /var/lib/cluster/node_env
+        required: true
 networks:
   otel:
     name: otel
