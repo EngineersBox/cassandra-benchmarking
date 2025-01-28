@@ -3,7 +3,7 @@ services:
     container_name: otel
     image: ghcr.io/engineersbox/otel-lgtm:latest
     volumes:
-      - "/var/log/otel/:log:/var/log/otel"
+      - "/var/log/otel/:/var/log/otel"
       - "/var/lib/cluster/config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
       - "/var/lib/cluster/config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
       - "/var/lib/cluster/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"

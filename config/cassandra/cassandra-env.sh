@@ -128,8 +128,8 @@ USING_G1=$?
 # times. If in doubt, and if you do not particularly want to tweak, go with
 # 100 MB per physical CPU core.
 
-#MAX_HEAP_SIZE="4G"
-#HEAP_NEWSIZE="800M"
+MAX_HEAP_SIZE="@@HEAP_SIZE@@"
+HEAP_NEWSIZE="800M"
 
 # Set this to control the amount of arenas per-thread in glibc
 #export MALLOC_ARENA_MAX=4
@@ -203,7 +203,7 @@ JVM_ON_OUT_OF_MEMORY_ERROR_OPT="-XX:OnOutOfMemoryError=kill -9 %p"
 # jmx: metrics and administration interface
 #
 # add this if you're having trouble connecting:
-JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<ON HOST OUTPUT OF: hostname -I | awk '{print $1}'"
+JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=@@RMI_HOSTNAME@@"
 
 # see
 # https://blogs.oracle.com/jmxetc/entry/troubleshooting_connection_problems_in_jconsole

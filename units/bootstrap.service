@@ -3,4 +3,5 @@ Description=Node bootstrapping
 
 [Service]
 Type=oneshot
-ExecStart=/bin/bash /var/lib/cluster/bootstrap.sh
+User=cluster
+ExecStart=+/bin/bash /var/lib/cluster/bootstrap.sh

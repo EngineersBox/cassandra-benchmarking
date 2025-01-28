@@ -4,11 +4,11 @@ services:
     image: ghcr.io/engineersbox/cassandra:5.0-metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - "/var/log/cassandra:/var/log/cassandra" 
+      - "/var/lib/cluster/logs:/var/log/cassandra" 
       - "/var/lib/cluster/config/otel/otel-instance.properties:/etc/otel/otel.properties" 
       - "/var/lib/cluster/config/cassandra:/etc/cassandra" 
       - "/var/lib/cluster/config/cassandra/cassandra.yaml:/etc/cassandra/cassandra.yaml" 
-      - "/mnt/nvme/cassandra_data:/var/lib/cassandra/data" 
+      - "/var/lib/cluster/data:/var/lib/cassandra/data" 
     mem_limit: 16gb
     memswap_limit: 16gb
     mem_swappiness: 0
@@ -25,7 +25,7 @@ services:
     container_name: otel-hostmetrics
     image: otel/opentelemetry-collector-contrib:0.101.0
     volumes:
-      - "/var/log/otel_hostmetricslog:/var/log/otel"
+      - "/var/log/otel_hostmetrics:/var/log/otel"
       - "/var/lib/cluster/config/otel/otel-instance-config.yaml:/etc/otelcol-contrib/config.yaml"
       - /var/run/docker.sock:/var/run/docker.sock 
       - /sys/fs/cgroup:/hostfs/sys/fs/cgroup 
@@ -36,7 +36,6 @@ services:
       - /lib/modules:/hostfs/lib/modules 
       - /boot:/boot
       - /snap:/snap
-      - /mnt:/mnt
       - /:/hostfs
       - /proc:/hostfs/proc
     env_file:

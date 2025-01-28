@@ -203,3 +203,4 @@
 -javaagent:/var/lib/otel/opentelemetry-javaagent.jar
 -Dotel.javaagent.configuration-file=/etc/otel/otel.properties
 -Dotel.service.name=Cassandra
+-Dio.opentelemetry.javaagent.slf4j.simpleLogger.defaultLogLevel=error
