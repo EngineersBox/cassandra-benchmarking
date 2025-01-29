@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o errexit -o pipefail -o noclobber -o nounset
+set -o errexit -o pipefail -o noclobber
 
 source /var/lib/cluster/node_env
 pushd /var/lib/cluster

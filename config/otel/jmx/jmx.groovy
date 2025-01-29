@@ -329,9 +329,10 @@ def cacheJVMMBeans() {
  */
 
 def instrument() {
-    final long now = System.nanoTime();
-    if (now - Cache.lastPoll >= Cache.pollFreq) {
-        Cache.lastPoll = now;
+    //final long now = System.nanoTime();
+    //if (now - Cache.lastPoll >= Cache.pollFreq) {
+    if (Cache.mbeanMappings.isEmpty()) {
+        //Cache.lastPoll = now;
         cacheCassandraMBeans()
         cacheJVMMBeans()
         Cache.printCache();

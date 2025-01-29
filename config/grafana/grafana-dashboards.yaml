@@ -21,3 +21,8 @@ providers:
     options:
       path: /otel-lgtm/grafana-dashboard-jvm.json
       foldersFromFilesStructure: false
+  - name: 'Cassandra Scheduler'
+    type: file
+    options:
+      path: /otel-lgtm/grafana-dashboard-cassandra-scheduler.json
+      foldersFromFilesStructure: false

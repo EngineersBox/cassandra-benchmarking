@@ -7,9 +7,8 @@ services:
       - "/var/lib/cluster/config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
       - "/var/lib/cluster/config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
       - "/var/lib/cluster/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
-      - "/var/lib/cluster/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-jvm.json"
-      - "/var/lib/cluster/config/otel/grafana-dashboard-jvm.json:/otel-lgtm/grafana-dashboard-data-serializer.json"
-      - "/var/lib/cluster/config/otel/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
+      - "/var/lib/cluster/config/grafana/grafana-dashboard-cassandra-scheduler.json:/otel-lgtm/grafana-dashboard-cassandra-scheduler.json"
+      - "/var/lib/cluster/config/grafana/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
       - "/var/lib/cluster/data:/otel-lgtm/data"
       - "/var/lib/cluster/opentelemetry-jmx-metrics.jar:/var/lib/otel/opentelemetry-jmx-metrics.jar"
     ports:
