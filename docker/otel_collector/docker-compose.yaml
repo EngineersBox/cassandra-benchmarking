@@ -6,6 +6,8 @@ services:
       - "/var/log/otel/:/var/log/otel"
       - "/var/lib/cluster/config/otel/otel-collector.properties:/otel-lgtm/jmx.properties"
       - "/var/lib/cluster/config/otel/jmx/jmx.groovy:/otel-lgtm/jmx.groovy"
+      - "/var/lib/cluster/config/otel/jmx_services:/otel-lgtm/jmx_services"
+      - "/var/lib/cluster/config/otel/jmx_configs:/otel-lgtm/jmx_configs"
       - "/var/lib/cluster/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
       - "/var/lib/cluster/config/grafana/grafana-dashboard-cassandra-scheduler.json:/otel-lgtm/grafana-dashboard-cassandra-scheduler.json"
       - "/var/lib/cluster/config/grafana/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"

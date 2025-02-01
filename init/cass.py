@@ -15,12 +15,12 @@ def constructReplication() -> str:
     return rf.removesuffix(",\n").removeprefix("\t")
 
 def main() -> None:
-    cluster = Cluster(contact_points=[os.environ["NODE_IP"]])
     retry_delay = 1
     for attempt in range(MAX_RETRIES):
         session = None
         try:
             logging.info("Connecting to Cassandra cluster [Attempt: %d/%d]", attempt + 1, MAX_RETRIES)
+            cluster = Cluster(contact_points=[os.environ["NODE_IP"]])
             session = cluster.connect()
             logging.info("Established connection to Cassandra cluster")
         except:
