@@ -254,6 +254,10 @@ def cacheMBeans(final String objectName,
 }
 
 def instrumentMBeans() {
+  // TODO: Get the node id as a property passed via CLI invocation
+  //       via System.getProperty(...) and tag eacb of the MBeans
+  //       with it so that multi-node JMX setups can distinguish
+  //       between nodes at a metric level.
   Cache.mbeanMappings.each({ key, entry ->
       def mbeans = otel.mbeans((entry.objectNames) as ArrayList);
       entry.attributes.each({ name, attribute ->
