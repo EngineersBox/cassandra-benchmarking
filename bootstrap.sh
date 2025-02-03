@@ -9,7 +9,7 @@ pushd /var/lib/cluster
 echo "[INFO] Starting $APPLICATION_VARIANT services"
 docker compose -f /var/lib/cluster/docker/$APPLICATION_VARIANT/docker-compose.yaml up -d
 
-if [ "x$INVOKE_INIT" = "x" ]; then
+if [[ -z "$INVOKE_INIT" || "$INVOKE_INIT" == "false" ]]; then
     echo "[INFO] No init invocation required, bootstrapping succeeded"
     popd
     exit 0
@@ -28,6 +28,13 @@ case "$APPLICATION_VARIANT" in
         set -a
         source /var/lib/cluster/node_env
         python3 ./init/cass.py
+        set +a
+        ;;
+    otel_collector)
+        echo "[INFO] Invoking OTEL collector initialisation"
+        set -a
+        source /var/lib/cluster/node_env
+        python3 ./init/otel.py
         set +a
         ;;
     *)
