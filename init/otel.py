@@ -15,12 +15,17 @@ CONNECT_RETRY_DELAY_SECONDS = 5
 
 def mainCassandra() -> None:
     node_ips = os.environ["CASSANDRA_NODE_IPS"].split(",")
+    # Pop the node because once we connect to the cluster, everything is
+    # ok on that node (in terms of conditions for the rest of OTEL init)
+    # and also because the system.peers_v2 table does not contain the
+    # current node you are connected to.
+    target_node = node_ips.pop(0)
     session = None
     # Get a connection
     while (True):
         try:
             logging.info("Connecting to Cassandra cluster")
-            cluster = Cluster(contact_points=[f"{node_ips[0]}:9042"])
+            cluster = Cluster(contact_points=[f"{target_node}:9042"])
             session = cluster.connect()
             break
         except:
@@ -31,13 +36,17 @@ def mainCassandra() -> None:
     # Wait for all nodes to come up
     while (len(node_ips) == 0):
         # Query all peers and their state
-        result_set: ResultSet = session.execute("select * from system.peers_v2;")
+        result_set: ResultSet = session.execute("select peer from system.peers_v2;")
         rows = result_set.all()
         # Remove the peers that are up from the list of node_ips we have
         for row in rows:
-            # FIXME:: Replace these template strings with whatever the real ones are
-            if (row["<STATE COLUMN NAME>"] == "UP" and row["<NODE_IP_COLUMN>"] in node_ips):
-                node_ips.remove(row["<NODE_IP_COLUMN>"])
+            # FIXME: The system.peers_v2 table doesn't have the state of the
+            #        nodes. Maybe it is easier to just connect to each node,
+            #        pull the system.local table and look at the boostrapped
+            #        column to see if it is 'COMPLETED' to determine if the
+            #        node is up or not.
+            if (row["peer"] in node_ips):
+                node_ips.remove(row["peer"])
     # Sleep for a minute for good measure
     time.sleep(60)
     pass
