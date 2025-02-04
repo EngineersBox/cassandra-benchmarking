@@ -9,6 +9,10 @@ services:
       - "/var/lib/cluster/config/otel/jmx_services:/otel-lgtm/jmx_services"
       - "/var/lib/cluster/config/otel/jmx_configs:/otel-lgtm/jmx_configs"
       - "/var/lib/cluster/config/otel/otel-collector-config.yaml:/otel-lgtm/otelcol-config.yaml"
+      # TODO: Finish updating this dashboard to use `job ~= $job` filtering in each graph
+      #       and figure out how best to create graphs for worker state/stage for multiple nodes.
+      #       This might end up just being that we duplicate the graph and change the target
+      #       to make it easier.
       - "/var/lib/cluster/config/grafana/grafana-dashboard-cassandra-scheduler.json:/otel-lgtm/grafana-dashboard-cassandra-scheduler.json"
       - "/var/lib/cluster/config/grafana/grafana-dashboards.yaml:/otel-lgtm/grafana-dashboards.yaml"
       - "/var/lib/cluster/data:/otel-lgtm/data"

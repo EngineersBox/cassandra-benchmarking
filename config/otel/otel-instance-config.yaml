@@ -167,5 +167,4 @@ service:
       - resourcedetection
       exporters:
       - otlphttp
-      - logging
       - file/logs

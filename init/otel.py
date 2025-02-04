@@ -6,7 +6,7 @@ from cassandra.cluster import Cluster, Host
 logging.basicConfig(format="[%(levelname)s] %(name)s :: %(message)s", level=logging.DEBUG)
 
 
-CONNECT_RETRY_DELAY_SECONDS = 5
+CONNECT_RETRY_DELAY_SECONDS = 10
 
 def filterUpHosts(hosts: list[Host]) -> list[Host]:
     return list(filter(lambda host: host.is_up, hosts))
@@ -25,11 +25,12 @@ def checkHosts(node_ips: list[str], contact_points: list[str]) -> bool:
             cluster.shutdown()
         return False
     if cluster.metadata == None:
+        logging.info("Cluster metadata not available yet, retrying")
         cluster.shutdown()
         return False;
     # Retrieve all cluster nodes (hosts)
     hosts = cluster.metadata.all_hosts()
-    if len(hosts) != node_ips:
+    if (len(hosts) != len(node_ips)):
         logging.info(f"Retrieved {len(hosts)} hosts, but have {len(node_ips)} IPs, retrying")
         cluster.shutdown()
         return False
@@ -37,19 +38,22 @@ def checkHosts(node_ips: list[str], contact_points: list[str]) -> bool:
     up_hosts = filterUpHosts(hosts)
     if (len(up_hosts) == len(node_ips)):
         cluster.shutdown()
+        logging.info("All cluster nodes up");
         return True
-    logging.info(f"{len(up_hosts)}/{len(node_ips)} nodes are up")
+    logging.info(f"{len(up_hosts)}/{len(node_ips)} nodes are up, retrying")
     cluster.shutdown()
     return False
 
 def mainCassandra() -> None:
     node_ips = os.environ["CASSANDRA_NODE_IPS"].split(",")
     contact_points = node_ips[:min(len(node_ips), 3)]
+    logging.debug(f"Retry  delay set to {CONNECT_RETRY_DELAY_SECONDS} seconds")
     while (not checkHosts(node_ips, contact_points)):
         time.sleep(CONNECT_RETRY_DELAY_SECONDS)
     # Sleep for a minute for good measure
+    logging.info("Sleeping for 1 minute to allow cluster to settle before establishing JMX connections");
     time.sleep(60)
-    pass
+    logging.info("Succeeded")
 
 def mainMongoDB() -> None:
     pass
@@ -61,19 +65,19 @@ def mainElasticsearch() -> None:
     pass
 
 class ApplicationVariant(Enum):
-    CASSANDRA = mainCassandra
-    MONGO_DB = mainMongoDB
-    SCYLLA = mainScylla
-    ELASTICSEARCH = mainElasticsearch
-    OTEL_COLLECTOR = None
+    CASSANDRA = "cassandra", mainCassandra
+    MONGO_DB = "mongo_db", mainMongoDB
+    SCYLLA = "scylla", mainScylla
+    ELASTICSEARCH = "elasticsearch", mainElasticsearch
+    OTEL_COLLECTOR = "otel_collector", None
 
     def isProvisionable(self) -> bool:
-        return self.value != None
+        return self.value[1] != None
 
     def mainMethod(self) -> Callable[[], None]:
-        if (self.value == None):
+        if (self.value[1] == None):
             raise ValueError(f"Variant is non-provisionable: {self.name}")
-        return self.value
+        return self.value[1]
 
 def main() -> None:
     env_cluster_application_variant = os.environ["CLUSTER_APPLICATION_VARIANT"].upper()
